@@ -3,6 +3,11 @@
 import arcade
 
 
+# Variables globales para dimensiones (para evitar imports circulares)
+ANCHO_VENTANA = 1080
+ALTO_VENTANA = 720
+
+
 class MenuPausa:
     """Menú de pausa del juego."""
 
@@ -317,8 +322,3 @@ class MenuPausa:
             anchor_x="center",
             anchor_y="bottom",
         )
-
-
-# Variables globales para dimensiones (para evitar imports circulares)
-ANCHO_VENTANA = 1080
-ALTO_VENTANA = 720

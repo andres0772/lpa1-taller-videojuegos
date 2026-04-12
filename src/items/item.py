@@ -103,10 +103,19 @@ class Consumible(Item):
 class Tesoro(Item):
     """Clase para tesoro (oro, experiencia, etc.)."""
 
-    def __init__(self, nombre: str, valor: int, precio: int = 0):
+    def __init__(
+        self,
+        nombre: str,
+        valor: int,
+        precio: int = 0,
+        center_x: float = 0.0,
+        center_y: float = 0.0,
+    ):
         super().__init__(nombre, "")
         self._valor = valor
         self._precio = precio
+        self.center_x = center_x
+        self.center_y = center_y
 
     @property
     def valor(self) -> int:

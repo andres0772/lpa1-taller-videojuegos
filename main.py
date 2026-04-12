@@ -309,6 +309,20 @@ class Juego(arcade.Window):
                         if item.sprite in self.lista_sprites:
                             self.lista_sprites.remove(item.sprite)
                         self.escenario.items.remove(item)
+                    elif isinstance(item, TrampaExplosiva):
+                        dano = item.daño
+                        item.activar(self.personaje)
+                        print(f"¡TRAMPA! Daño recibido: {dano}")
+                        if item.sprite in self.lista_sprites:
+                            self.lista_sprites.remove(item.sprite)
+                        self.escenario.items.remove(item)
+
+        # Verificar si el personaje murió
+        if not self.personaje.esta_vivo():
+            print("💀 GAME OVER 💀")
+            print("El personaje ha muerto. Cerrando el juego...")
+            arcade.close_window()
+            return
 
     def on_draw(self):
         """Dibuja el juego."""

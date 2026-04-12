@@ -4,6 +4,11 @@ import arcade
 from ..sistemas.tienda import SistemaTienda
 
 
+# Variables globales para dimensiones (para evitar imports circulares)
+ANCHO_VENTANA = 1080
+ALTO_VENTANA = 720
+
+
 class MenuTienda:
     """Menú de la tienda可视化."""
 
@@ -503,8 +508,3 @@ class MenuTienda:
                 anchor_x="center",
                 anchor_y="bottom",
             )
-
-
-# Variables globales para dimensiones (para evitar imports circulares)
-ANCHO_VENTANA = 1080
-ALTO_VENTANA = 720
