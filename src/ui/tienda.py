@@ -40,24 +40,22 @@ class MenuTienda:
 
     def _manejar_menu(self, key) -> bool:
         """Maneja el menú principal."""
-        if key == arcade.key.NUM_1 or key == arcade.key._1:
+        if key in (arcade.key.NUM_1, arcade.key.KEY_1):
             self._modo_actual = "comprar"
             self._mensaje = ""
             return True
-        elif key == arcade.key.NUM_2 or key == arcade.key._2:
+        elif key in (arcade.key.NUM_2, arcade.key.KEY_2):
             self._modo_actual = "vender"
             self._mensaje = ""
             if not self._personaje.inventario:
                 self._mensaje = "Inventario vacío"
             return True
-        elif key == arcade.key.NUM_3 or key == arcade.key._3:
+        elif key in (arcade.key.NUM_3, arcade.key.KEY_3):
             # Equipar items del inventario
             self._mensaje = self._equipar_items()
             self._mostrar_mensaje_timer = 2.0
             return True
-        elif (
-            key == arcade.key.ESCAPE or key == arcade.key.NUM_4 or key == arcade.key._4
-        ):
+        elif key in (arcade.key.ESCAPE, arcade.key.NUM_4, arcade.key.KEY_4):
             self.cerrar()
             return True
         return False
@@ -67,15 +65,15 @@ class MenuTienda:
         # Mapeo de teclas a índice (1-9)
         mapeo = {
             arcade.key.NUM_1: 0,
-            arcade.key._1: 0,
+            arcade.key.KEY_1: 0,
             arcade.key.NUM_2: 1,
-            arcade.key._2: 1,
+            arcade.key.KEY_2: 1,
             arcade.key.NUM_3: 2,
-            arcade.key._3: 2,
+            arcade.key.KEY_3: 2,
             arcade.key.NUM_4: 3,
-            arcade.key._4: 3,
+            arcade.key.KEY_4: 3,
             arcade.key.NUM_5: 4,
-            arcade.key._5: 4,
+            arcade.key.KEY_5: 4,
         }
 
         if key in mapeo:
@@ -97,23 +95,23 @@ class MenuTienda:
             # Calcular índice basado en tecla
             mapeo = {
                 arcade.key.NUM_1: 0,
-                arcade.key._1: 0,
+                arcade.key.KEY_1: 0,
                 arcade.key.NUM_2: 1,
-                arcade.key._2: 1,
+                arcade.key.KEY_2: 1,
                 arcade.key.NUM_3: 2,
-                arcade.key._3: 2,
+                arcade.key.KEY_3: 2,
                 arcade.key.NUM_4: 3,
-                arcade.key._4: 3,
+                arcade.key.KEY_4: 3,
                 arcade.key.NUM_5: 4,
-                arcade.key._5: 4,
+                arcade.key.KEY_5: 4,
                 arcade.key.NUM_6: 5,
-                arcade.key._6: 5,
+                arcade.key.KEY_6: 5,
                 arcade.key.NUM_7: 6,
-                arcade.key._7: 6,
+                arcade.key.KEY_7: 6,
                 arcade.key.NUM_8: 7,
-                arcade.key._8: 7,
+                arcade.key.KEY_8: 7,
                 arcade.key.NUM_9: 8,
-                arcade.key._9: 8,
+                arcade.key.KEY_9: 8,
             }
 
             if key in mapeo:
