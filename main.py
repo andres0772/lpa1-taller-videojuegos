@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arcade
 from src.entidades import Personaje, Enemigo
 from src.mundo import Escenario
-from src.ui import HUD, MenuTienda
+from src.ui import HUD, MenuTienda, MenuPausa
 from src.items import Tesoro, TrampaExplosiva
 from src.sistemas import SistemaCombate
 
@@ -54,6 +54,10 @@ class Juego(arcade.Window):
         # Crear menú de tienda
         self.tienda = MenuTienda(self.personaje, self.escenario)
         self._tienda_abierta = False
+
+        # Crear menú de pausa
+        self.pausa = MenuPausa(self.personaje)
+        self._pausa_abierta = False
 
         # Sprite del personaje (rectángulo azul)
         self.sprite_jugador = None
@@ -110,6 +114,28 @@ class Juego(arcade.Window):
                 self.tienda.manejar_input(key)
             return
 
+        # Si el menú de pausa está abierto, manejar input ahí
+        if self._pausa_abierta:
+            if key == arcade.key.ESCAPE:
+                self._pausa_abierta = False
+                self.pausa.cerrar()
+            else:
+                # Si el input cierra el menú (opción 1), cerrar pausa
+                if self.pausa.manejar_input(key):
+                    # Si la opción fue continuar o salir, cerrar pausa
+                    if key in (arcade.key.NUM_1, arcade.key.KEY_1):
+                        self._pausa_abierta = False
+                    # Si salió del juego, ya se cerró solo
+                    if key in (arcade.key.NUM_4, arcade.key.KEY_4):
+                        pass  # El juego ya se cierra en MenuPausa
+            return
+
+        # Abrir menú de pausa con ESC o P
+        if key in (arcade.key.ESCAPE, arcade.key.P):
+            self._pausa_abierta = True
+            self.pausa.abrir()
+            return
+
         # Abrir tienda con 'T'
         if key == arcade.key.T:
             self._tienda_abierta = True
@@ -125,8 +151,12 @@ class Juego(arcade.Window):
 
     def on_update(self, delta_time):
         """Actualiza el estado del juego."""
-        # No procesar combate si la tienda está abierta
+        # No procesar si la tienda está abierta
         if self._tienda_abierta:
+            return
+
+        # No procesar si el menú de pausa está abierto
+        if self._pausa_abierta:
             return
 
         # Movimiento continuo basado en keys presionadas
@@ -248,9 +278,13 @@ class Juego(arcade.Window):
         if self._tienda_abierta:
             self.tienda.dibujar()
 
+        # Dibujar menú de pausa si está abierto
+        if self._pausa_abierta:
+            self.pausa.dibujar()
+
         # Instrucciones
         arcade.draw_text(
-            "Usa flechas para moverte | [T] Tienda",
+            "Usa flechas para moverte | [T] Tienda | [ESC/P] Pausa",
             ANCHO_VENTANA // 2,
             ALTO_VENTANA - 30,
             arcade.color.WHITE,
