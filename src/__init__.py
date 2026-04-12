@@ -1,3 +1,1 @@
-"""Taller POO - Videojuegos.
-Action RPG top-down usando Python + Arcade.
-"""
+"""Paquete principal del juego."""
