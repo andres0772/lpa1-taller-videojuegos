@@ -31,8 +31,8 @@ class Juego(arcade.Window):
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
 
-        # Color de fondo (verde oscuro = bosque)
-        arcade.set_background_color(arcade.color.DARK_GREEN)
+        # Color de fondo según el área (inicial = bosque)
+        self._actualizar_color_fondo()
 
         # Crear personaje
         self.personaje = Personaje("Heroe")
@@ -43,10 +43,8 @@ class Juego(arcade.Window):
         # Keys presionadas para movimiento continuo
         self._keys_presionadas = set()
 
-        # Crear escenario
+        # Crear escenario (las áreas ya generan su contenido automáticamente)
         self.escenario = Escenario(ANCHO_VENTANA, ALTO_VENTANA)
-        self.escenario.generar_enemigos_aleatorios(3)
-        self.escenario.generar_items_aleatorios(2)
 
         # Crear HUD
         self.hud = HUD(self.personaje)
@@ -103,6 +101,46 @@ class Juego(arcade.Window):
         sprite = arcade.SpriteSolidColor(20, 20, color=color)
         return sprite
 
+    def _actualizar_color_fondo(self):
+        """Actualiza el color de fondo según el área actual."""
+        color = self.escenario.color_fondo
+        arcade.set_background_color(color)
+
+    def _cargar_area_actual(self):
+        """Carga los sprites del área actual."""
+        # Limpiar sprites de enemigos e items previos (excepto jugador)
+        for sprite in self.lista_sprites:
+            if sprite != self.sprite_jugador:
+                self.lista_sprites.remove(sprite)
+
+        # Agregar enemigos del área actual
+        for enemigo in self.escenario.enemigos:
+            color = (
+                arcade.color.GREEN if enemigo.tipo == "terrestre" else arcade.color.RED
+            )
+            sprite = self._crear_sprite_enemigo(enemigo, color)
+            self.lista_sprites.append(sprite)
+            enemigo.sprite = sprite
+
+        # Agregar items del área actual
+        for item in self.escenario.items:
+            if isinstance(item, Tesoro):
+                sprite = self._crear_sprite_item(arcade.color.GOLD)
+                self.lista_sprites.append(sprite)
+                item.sprite = sprite
+
+    def _cambiar_area(self, tipo: str):
+        """Cambia el área del juego."""
+        if self.escenario.cambiar_area(tipo):
+            self._actualizar_color_fondo()
+            # Reiniciar posición del jugador en el centro
+            self.sprite_jugador.center_x = ANCHO_VENTANA // 2
+            self.sprite_jugador.center_y = ALTO_VENTANA // 2
+            self._cargar_area_actual()
+            print(f"¡Bienvenido a {self.escenario.nombre_area_actual}!")
+            return True
+        return False
+
     def on_key_press(self, key, modifiers):
         """Maneja eventos de teclado."""
         # Si la tienda está abierta, manejar input ahí
@@ -140,6 +178,17 @@ class Juego(arcade.Window):
         if key == arcade.key.T:
             self._tienda_abierta = True
             self.tienda.abrir()
+            return
+
+        # Cambiar área con 'M'
+        if key == arcade.key.M:
+            self.escenario.ir_area_siguiente()
+            self._actualizar_color_fondo()
+            # Reiniciar posición del jugador en el centro
+            self.sprite_jugador.center_x = ANCHO_VENTANA // 2
+            self.sprite_jugador.center_y = ALTO_VENTANA // 2
+            self._cargar_area_actual()
+            print(f"¡Has entrado a {self.escenario.nombre_area_actual}!")
             return
 
         self._keys_presionadas.add(key)
@@ -284,12 +333,22 @@ class Juego(arcade.Window):
 
         # Instrucciones
         arcade.draw_text(
-            "Usa flechas para moverte | [T] Tienda | [ESC/P] Pausa",
+            "Flechas: mover | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
             ANCHO_VENTANA // 2,
             ALTO_VENTANA - 30,
             arcade.color.WHITE,
             16,
             anchor_x="center",
+        )
+
+        # Mostrar nombre del área actual
+        arcade.draw_text(
+            f"Área: {self.escenario.nombre_area_actual}",
+            100,
+            ALTO_VENTANA - 30,
+            arcade.color.WHITE,
+            14,
+            anchor_x="left",
         )
 
 

@@ -1,17 +1,32 @@
+"""Gestor de escenarios con múltiples áreas."""
+
 from typing import Optional
-import random
-from ..entidades.enemigo import Enemigo
-from ..items.item import Item
+from .area import Area
 
 
 class Escenario:
-    """Gestiona el mapa/escenario del juego."""
+    """Gestiona múltiples áreas/zonas del juego."""
 
-    def __init__(self, ancho: int = 1080, alto: int = 720):
+    # Orden de las áreas disponibles
+    AREAS_DISPONIBLES = ["bosque", "castillo", "campo"]
+
+    def __init__(
+        self, ancho: int = 1080, alto: int = 720, area_inicial: str = "bosque"
+    ):
         self._ancho = ancho
         self._alto = alto
-        self._enemigos: list[Enemigo] = []
-        self._items: list[Item] = []
+        self._areas: dict[str, Area] = {}
+        self._area_actual: str = area_inicial
+
+        # Crear todas las áreas
+        self._crear_areas()
+
+    def _crear_areas(self):
+        """Crea todas las áreas del juego."""
+        for tipo in self.AREAS_DISPONIBLES:
+            self._areas[tipo] = Area(
+                tipo, self._ancho, self._alto, generar_contenido=True
+            )
 
     @property
     def ancho(self) -> int:
@@ -22,54 +37,77 @@ class Escenario:
         return self._alto
 
     @property
-    def enemigos(self) -> list[Enemigo]:
-        return self._enemigos
+    def area_actual(self) -> str:
+        return self._area_actual
 
     @property
-    def items(self) -> list[Item]:
-        return self._items
+    def area(self) -> Area:
+        """Retorna el área actual."""
+        return self._areas[self._area_actual]
 
-    def agregar_enemigo(self, enemigo: Enemigo) -> None:
-        """Agrega un enemigo al escenario."""
-        self._enemigos.append(enemigo)
+    @property
+    def enemigos(self) -> list:
+        """Retorna los enemigos del área actual."""
+        return self.area.enemigos
 
-    def agregar_item(self, item: Item) -> None:
-        """Agrega un item al escenario."""
-        self._items.append(item)
+    @property
+    def items(self) -> list:
+        """Retorna los items del área actual."""
+        return self.area.items
 
-    def generar_enemigos_aleatorios(self, cantidad: int = 5) -> None:
-        """Genera enemigos aleatorios en el escenario."""
-        tipos = ["terrestre", "volador"]
-        nombres = {
-            "terrestre": ["Goblin", "Orco", "Slime", "Zombie"],
-            "volador": ["Murciélago", "Gárgola", "Dragón pequeño"],
-        }
+    @property
+    def nombre_area_actual(self) -> str:
+        """Nombre legible del área actual."""
+        return self.area.nombre
 
-        for _ in range(cantidad):
-            tipo = random.choice(tipos)
-            nombre = random.choice(nombres[tipo])
-            hp = random.randint(20, 50)
-            ataque = random.randint(5, 15)
-            defensa = random.randint(0, 5)
-            xp = random.randint(10, 30)
-            oro = random.randint(5, 20)
+    @property
+    def color_fondo(self) -> tuple:
+        """Color de fondo del área actual."""
+        return self.area.color_fondo
 
-            enemigo = Enemigo(nombre, hp, ataque, defensa, tipo, xp, oro)
-            # Posición aleatoria
-            enemigo.center_x = random.randint(50, self._ancho - 50)
-            enemigo.center_y = random.randint(50, self._alto - 50)
-            self.agregar_enemigo(enemigo)
+    @property
+    def areas_disponibles(self) -> list[str]:
+        """Lista de tipos de áreas disponibles."""
+        return self.AREAS_DISPONIBLES
 
-    def generar_items_aleatorios(self, cantidad: int = 3) -> None:
-        """Genera items aleatorios (tesoros) en el escenario."""
-        from ..items.item import Tesoro
+    def cambiar_area(self, tipo: str) -> bool:
+        """Cambia al área especificada.
 
-        for _ in range(cantidad):
-            valor = random.randint(10, 100)
-            tesoro = Tesoro(f"Oro {valor}", valor)
-            tesoro.center_x = random.randint(50, self._ancho - 50)
-            tesoro.center_y = random.randint(50, self._alto - 50)
-            self.agregar_item(tesoro)
+        Returns:
+            True si el cambio fue exitoso, False si el área no existe.
+        """
+        if tipo in self._areas:
+            self._area_actual = tipo
+            return True
+        return False
+
+    def ir_area_siguiente(self) -> bool:
+        """Avanza a la siguiente área en la lista circular."""
+        indice_actual = self.AREAS_DISPONIBLES.index(self._area_actual)
+        siguiente_indice = (indice_actual + 1) % len(self.AREAS_DISPONIBLES)
+        self._area_actual = self.AREAS_DISPONIBLES[siguiente_indice]
+        return True
+
+    def ir_area_anterior(self) -> bool:
+        """Retrocede a la área anterior en la lista circular."""
+        indice_actual = self.AREAS_DISPONIBLES.index(self._area_actual)
+        anterior_indice = (indice_actual - 1) % len(self.AREAS_DISPONIBLES)
+        self._area_actual = self.AREAS_DISPONIBLES[anterior_indice]
+        return True
+
+    def agregar_enemigo(self, enemigo):
+        """Agrega un enemigo al área actual."""
+        self.area.agregar_enemigo(enemigo)
+
+    def agregar_item(self, item):
+        """Agrega un item al área actual."""
+        self.area.agregar_item(item)
+
+    def regenerar_contenido(self):
+        """Regenera el contenido del área actual (enemies y items)."""
+        self._areas[self._area_actual] = Area(
+            self._area_actual, self._ancho, self._alto, generar_contenido=True
+        )
 
     def __repr__(self) -> str:
-        return f"Escenario(enemigos={len(self._enemigos)}, items={len(self._items)})"
+        return f"Escenario(area={self._area_actual}, areas={len(self._areas)})"
