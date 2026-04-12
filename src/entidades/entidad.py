@@ -37,9 +37,8 @@ class Entidad(ABC):
         pass
 
     def recibir_daño(self, daño: int) -> None:
-        """Reduce el HP actual por el daño recibido (después de aplicar defensa)."""
-        daño_real = max(1, daño - self._defensa)
-        self._hp_actual = max(0, self._hp_actual - daño_real)
+        """Reduce el HP actual por el daño recibido (ya calculado por el sistema de combate)."""
+        self._hp_actual = max(0, self._hp_actual - daño)
 
     def curar(self, cantidad: int) -> None:
         """Incrementa el HP actual sin superar el HP máximo."""
