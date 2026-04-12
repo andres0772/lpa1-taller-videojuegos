@@ -108,10 +108,12 @@ class Juego(arcade.Window):
 
     def _cargar_area_actual(self):
         """Carga los sprites del área actual."""
-        # Limpiar sprites de enemigos e items previos (excepto jugador)
-        for sprite in self.lista_sprites:
-            if sprite != self.sprite_jugador:
-                self.lista_sprites.remove(sprite)
+        # Limpiar TODOS los sprites excepto el jugador
+        self.lista_sprites.clear()
+        self.lista_sprites.append(self.sprite_jugador)
+
+        # Regenerar contenido del área (nuevos enemigos y items)
+        self.escenario.regenerar_contenido()
 
         # Agregar enemigos del área actual
         for enemigo in self.escenario.enemigos:
