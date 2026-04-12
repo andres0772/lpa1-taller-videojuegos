@@ -191,8 +191,8 @@ class MenuTienda:
     def _dibujar_menu_principal(self) -> None:
         """Dibuja el menú principal de la tienda."""
         # Fondo del panel - más pequeño y compacto
-        ancho = 320
-        alto = 280
+        ancho = 420
+        alto = 380
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
 
@@ -217,7 +217,7 @@ class MenuTienda:
         # Título
         arcade.draw_text(
             "TIENDA",
-            x - 130,
+            x - -0.1,
             y + alto // 2 - 25,
             arcade.color.GOLD,
             22,
