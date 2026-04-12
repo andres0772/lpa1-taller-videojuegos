@@ -1,7 +1,6 @@
 """Módulo de items del juego."""
 
-from .item import Item, Consumible, Tesoro
+from .item import Item, Equipamiento, Consumible, Tesoro
 from .trampa import TrampaExplosiva
-from .equipamiento import Equipamiento
 
-__all__ = ["Item", "Consumible", "Tesoro", "TrampaExplosiva", "Equipamiento"]
+__all__ = ["Item", "Equipamiento", "Consumible", "Tesoro", "TrampaExplosiva"]
