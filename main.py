@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import arcade
 from src.entidades import Personaje, Enemigo
 from src.mundo import Escenario
-from src.ui import HUD
+from src.ui import HUD, MenuTienda
 from src.items import Tesoro, TrampaExplosiva
 from src.sistemas import SistemaCombate
 
@@ -50,6 +50,10 @@ class Juego(arcade.Window):
 
         # Crear HUD
         self.hud = HUD(self.personaje)
+
+        # Crear menú de tienda
+        self.tienda = MenuTienda(self.personaje, self.escenario)
+        self._tienda_abierta = False
 
         # Sprite del personaje (rectángulo azul)
         self.sprite_jugador = None
@@ -97,6 +101,21 @@ class Juego(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """Maneja eventos de teclado."""
+        # Si la tienda está abierta, manejar input ahí
+        if self._tienda_abierta:
+            if key == arcade.key.ESCAPE:
+                self._tienda_abierta = False
+                self.tienda.cerrar()
+            else:
+                self.tienda.manejar_input(key)
+            return
+
+        # Abrir tienda con 'T'
+        if key == arcade.key.T:
+            self._tienda_abierta = True
+            self.tienda.abrir()
+            return
+
         self._keys_presionadas.add(key)
 
     def on_key_release(self, key, modifiers):
@@ -221,9 +240,13 @@ class Juego(arcade.Window):
         # Dibujar HUD
         self.hud.dibujar()
 
+        # Dibujar tienda si está abierta
+        if self._tienda_abierta:
+            self.tienda.dibujar()
+
         # Instrucciones
         arcade.draw_text(
-            "Usa flechas para moverte",
+            "Usa flechas para moverte | [T] Tienda",
             ANCHO_VENTANA // 2,
             ALTO_VENTANA - 30,
             arcade.color.WHITE,
