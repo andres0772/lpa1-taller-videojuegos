@@ -552,15 +552,10 @@ class Juego(arcade.Window):
                         and proyectil.sprite
                     ):
                         if arcade.check_for_collision(proyectil.sprite, enemigo.sprite):
-                            # ¡Impacto!
-                            resultado = SistemaCombate.atacar(self.personaje, enemigo)
-                            # Aplicar daño extra del proyectil si el enemigo sigue vivo
-                            if enemigo.esta_vivo():
-                                dano_proyectil = proyectil.dano
-                                enemigo.recibir_daño(dano_proyectil)
-                                print(
-                                    f"¡IMPACTO! Proyectil causó {dano_proyectil} daño"
-                                )
+                            # ¡Impacto! - Solo dañar al enemigo, sin contraataque
+                            dano_proyectil = proyectil.dano
+                            enemigo.recibir_daño(dano_proyectil)
+                            print(f"¡IMPACTO! Proyectil causó {dano_proyectil} daño")
 
                             if not enemigo.esta_vivo():
                                 self.personaje.ganar_experiencia(
