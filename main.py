@@ -133,6 +133,11 @@ class Juego(arcade.Window):
         """Cambia el área del juego."""
         if self.escenario.cambiar_area(tipo):
             self._actualizar_color_fondo()
+
+            # Limpiar sprites anteriores (excepto el jugador)
+            self.lista_sprites.clear()
+            self.lista_sprites.append(self.sprite_jugador)
+
             # Reiniciar posición del jugador en el centro
             self.sprite_jugador.center_x = ANCHO_VENTANA // 2
             self.sprite_jugador.center_y = ALTO_VENTANA // 2
