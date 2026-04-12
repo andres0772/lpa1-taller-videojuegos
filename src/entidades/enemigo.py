@@ -20,6 +20,9 @@ class Enemigo(Entidad):
         self._tipo = tipo
         self._experiencia_al_derrotar = experiencia_al_derrotar
         self._oro_al_derrotar = oro_al_derrotar
+        # Posición en el escenario
+        self.center_x: float = 0.0
+        self.center_y: float = 0.0
 
     @property
     def nombre(self) -> str:
