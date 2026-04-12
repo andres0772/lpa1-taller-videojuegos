@@ -25,6 +25,7 @@ class Juego(arcade.Window):
     """Clase principal del juego."""
 
     COMBATE_COOLDOWN = 1.0  # segundos entre ataques
+    VELOCIDAD_JUGADOR = 150  # pixels por segundo
 
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
@@ -37,6 +38,9 @@ class Juego(arcade.Window):
 
         # Cooldown de combate para evitar muerte por frame
         self._tiempo_ultimo_combate = 0.0
+
+        # Keys presionadas para movimiento continuo
+        self._keys_presionadas = set()
 
         # Crear escenario
         self.escenario = Escenario(ANCHO_VENTANA, ALTO_VENTANA)
@@ -92,15 +96,25 @@ class Juego(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """Maneja eventos de teclado."""
-        velocidad = 10
+        self._keys_presionadas.add(key)
 
-        if key == arcade.key.LEFT:
+    def on_key_release(self, key, modifiers):
+        """Maneja cuando se suelta una tecla."""
+        if key in self._keys_presionadas:
+            self._keys_presionadas.remove(key)
+
+    def on_update(self, delta_time):
+        """Actualiza el estado del juego."""
+        # Movimiento continuo basado en keys presionadas
+        velocidad = self.VELOCIDAD_JUGADOR * delta_time
+
+        if arcade.key.LEFT in self._keys_presionadas:
             self.sprite_jugador.center_x -= velocidad
-        elif key == arcade.key.RIGHT:
+        if arcade.key.RIGHT in self._keys_presionadas:
             self.sprite_jugador.center_x += velocidad
-        elif key == arcade.key.UP:
+        if arcade.key.UP in self._keys_presionadas:
             self.sprite_jugador.center_y += velocidad
-        elif key == arcade.key.DOWN:
+        if arcade.key.DOWN in self._keys_presionadas:
             self.sprite_jugador.center_y -= velocidad
 
         # Mantener dentro de la pantalla
@@ -111,8 +125,6 @@ class Juego(arcade.Window):
             20, min(ALTO_VENTANA - 20, self.sprite_jugador.center_y)
         )
 
-    def on_update(self, delta_time):
-        """Actualiza el estado del juego."""
         # Sincronizar posición del personaje
         self.personaje.center_x = self.sprite_jugador.center_x
         self.personaje.center_y = self.sprite_jugador.center_y
