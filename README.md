@@ -14,15 +14,52 @@ Este proyecto consiste en el desarrollo de un videojuego básico utilizando los 
 
 El proyecto se dividirá en varias fases, comenzando con la creación de clases para personajes, enemigos y objetos, y luego avanzando hacia la implementación de la lógica del juego, el sistema de combate y la interfaz de usuario básica. Se fomentará el uso de buenas prácticas de programación, como la documentación del código, el control de versiones con Git. Al finalizar el proyecto, los estudiantes habrán ganado experiencia práctica en el diseño y desarrollo de software orientado a objetos, así como en la resolución de problemas y el trabajo en equipo.
 
-#### Objetivos del Proyecto
+### Características Implementadas
 
-1.  Aplicar los principios de la programación orientada a objetos (POO), demostrando su capacidad para diseñar e implementar clases, objetos, herencia, polimorfismo y encapsulamiento en el contexto del desarrollo de un videojuego.
-2.  Desarrollar un sistema modular y extensible, de manera que sea fácil de modificar y expandir, permitiendo la adición de nuevas funcionalidades y contenido en el futuro.
-3.  Implementar la lógica del juego y el sistema de combate funcional y equilibrado, así como la lógica para la interacción con objetos y enemigos en el mundo del juego.
-4.  Crear una interfaz de usuario básica que permita al jugador interactuar con el mundo del juego y visualizar la información relevante (puntos de vida, inventario, etc.).
-5.  Practicar buenas prácticas de programación como el control de versiones (Git), documentar su código.
+El juego cuenta con las siguientes funcionalidades implementadas:
 
-## Requerimientos
+- **Sistema de Personaje**: Creación y gestión de personaje jugable con atributos de HP, ataque, defensa, nivel e inventario.
+- **Sistema de Enemigos**: Generación de enemigos con diferentes tipos (terrestre, volador) y jefes únicos.
+- **Sistema de Combate**: Mecánica de combate con cálculo de daño basado en ataque y defensa.
+- **Sistema de Experiencia**: Ganancia de XP al derrotar enemigos y progreso de nivel con mejora de atributos.
+- **Sistema de Inventario**: Gestión de items recolectados.
+- **Sistema de Tienda**: Compra y venta de equipamiento, auto-equipado automático.
+- **Sistema de Áreas**: Múltiples escenarios (Bosque Encantado, Castillo Oscuro, Campo de Batalla) con generación procedimental.
+- **Sistema de Dificultad Progresiva**: Los enemigos se vuelven más difíciles a medida que se avanza.
+- **Interfaz de Usuario (HUD)**: Visualización de stats en tiempo real.
+- **Menú de Pausa**: Stats del personaje, equipamiento y inventario.
+- **Menú de Tienda**: Compra, venta y equipamiento.
+
+## Controles del Juego
+
+| Tecla | Acción |
+|------|-------|
+| `Flechas` o `WASD` | Mover al personaje |
+| `Espacio` | Atacar / Recolectar item |
+| `P` | Abrir menú de pausa |
+| `T` | Abrir tienda |
+| `1-9` | Seleccionar opción en menús |
+| `ESC` | Cerrar menús / Cancelar |
+
+### Menú de Pausa
+
+| Tecla | Acción |
+|------|-------|
+| `1` | Continuar juego |
+| `2` | Ver stats del personaje |
+| `3` | Configuración |
+| `4` | Salir del juego |
+
+### Tienda
+
+| Tecla | Acción |
+|------|-------|
+| `1` | Comprar equipamiento |
+| `2` | Vender items del inventario |
+| `3` | Equipar mejores items |
+| `4` / `ESC` | Salir de la tienda |
+
+#### Requerimientos
 
 * **R1.1. Creación de Personaje Jugable**: El sistema debe permitir la creación de un personaje jugable con los siguientes atributos: Puntos de vida, Ataque, Defensa, Nivel, Inventario.
 
@@ -106,6 +143,8 @@ El proyecto se dividirá en varias fases, comenzando con la creación de clases 
 
 ![Diagrama de Clases](./docs/diagramas.png)
 
+Para una descripción detallada del diagrama de clases, ver [docs/diagramas.md](./docs/diagramas.md).
+
 ## Instalación
 
 1. Clonar el proyecto
@@ -130,10 +169,35 @@ El proyecto se dividirá en varias fases, comenzando con la creación de clases 
     
 ## Ejecución
 
-1. Ejecutar el proyecto
+Para ejecutar el juego, usa uno de los siguientes métodos:
 
-    ```bash
-    cd lpa1-taller-videojuegos
-    python3 main.py
-    ```
+### Método 1: Python directo
 
+```bash
+cd lpa1-taller-videojuegos
+python3 main.py
+```
+
+### Método 2: Con el entorno virtual activado
+
+```bash
+cd lpa1-taller-videojuegos
+source venv/bin/activate
+python main.py
+```
+
+### Método 3: Ejecutable (si está configurado)
+
+```bash
+cd lpa1-taller-videojuegos
+./run.sh
+```
+
+### Requisitos del sistema
+
+- Python 3.8+
+- Bibliotecas: arcade (ver requirements.txt)
+
+---
+
+*Proyecto desarrollado para el Taller de Videojuegos - LPA1*
