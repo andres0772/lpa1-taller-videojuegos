@@ -3,6 +3,12 @@
 Juego de demostración para aprender Programación Orientada a Objetos.
 """
 
+import sys
+import os
+
+# Agregar src al path para imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import arcade
 
 from entidades import Personaje, Enemigo

@@ -10,7 +10,7 @@ class HUD:
     def dibujar(self) -> None:
         """Dibuja el HUD en pantalla."""
         # Fondo del HUD
-        arcade.draw_lrtb_rectangle_filled(
+        arcade.draw_lrbt_rectangle_filled(
             left=10, right=250, top=90, bottom=10, color=(0, 0, 0, 180)
         )
 
