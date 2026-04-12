@@ -266,6 +266,3 @@
 4. **Encapsulamiento**: Uso de properties para proteger los atributos privados.
 5. **Herencia vs Composición**: Se usa herencia para entidades del dominio (Personaje, Enemigo, Items) y composición para sistemas (SistemaCombate, SistemaTienda).
 
----
-
-*Generado automáticamente para el proyecto lpa1-taller-videojuegos*

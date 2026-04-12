@@ -1,12 +1,12 @@
 # Taller Videojuegos
 
-![commits](https://badgen.net/github/commits/clubdecomputacion/lpa1-taller-videojuegos?icon=github) 
-![last_commit](https://img.shields.io/github/last-commit/clubdecomputacion/lpa1-taller-videojuegos)
+![commits](https://badgen.net/github/commits/andres0772/lpa1-taller-videojuegos?icon=github) 
+![last_commit](https://img.shields.io/github/last-commit/andres0772/lpa1-taller-videojuegos)
 - ver [badgen](https://badgen.net/) o [shields](https://shields.io/) para otros tipos de _badges_
 
 ## Autor
 
-- [@estudiante](https://github.com/estudiante)
+- [Andres Esteban Vasquez Peña](https://github.com/andres0772)
 
 ## Descripción del Proyecto
 
@@ -150,7 +150,7 @@ Para una descripción detallada del diagrama de clases, ver [docs/diagramas.md](
 1. Clonar el proyecto
 
     ```bash
-    git clone https://github.com/clubdecomputacion/lpa1-taller-videojuegos.git
+    git clone https://github.com/andres0772/lpa1-taller-videojuegos.git
     cd lpa1-taller-videojuegos
     ```
 
