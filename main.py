@@ -24,6 +24,8 @@ TITULO = "Fantasy RPG - Taller POO"
 class Juego(arcade.Window):
     """Clase principal del juego."""
 
+    COMBATE_COOLDOWN = 1.0  # segundos entre ataques
+
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
 
@@ -32,6 +34,9 @@ class Juego(arcade.Window):
 
         # Crear personaje
         self.personaje = Personaje("Heroe")
+
+        # Cooldown de combate para evitar muerte por frame
+        self._tiempo_ultimo_combate = 0.0
 
         # Crear escenario
         self.escenario = Escenario(ANCHO_VENTANA, ALTO_VENTANA)
@@ -112,26 +117,42 @@ class Juego(arcade.Window):
         self.personaje.center_x = self.sprite_jugador.center_x
         self.personaje.center_y = self.sprite_jugador.center_y
 
-        # Verificar colisiones con enemigos
-        for enemigo in self.escenario.enemigos:
-            if enemigo.esta_vivo() and hasattr(enemigo, "sprite") and enemigo.sprite:
-                if arcade.check_for_collision(self.sprite_jugador, enemigo.sprite):
-                    # ¡Combate!
-                    resultado = SistemaCombate.atacar(self.personaje, enemigo)
-                    print(f"¡Combate! Daño: {resultado.dano_infligido}")
+        # Actualizar cooldown de combate
+        self._tiempo_ultimo_combate -= delta_time
 
-                    if resultado.enemigo_derrotado:
-                        # Ganar experiencia y oro
-                        self.personaje.ganar_experiencia(
-                            enemigo.experiencia_al_derrotar
-                        )
-                        self.personaje._oro += enemigo.oro_al_derrotar
-                        print(
-                            f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
-                        )
-                        # Eliminar sprite
-                        if enemigo.sprite in self.lista_sprites:
-                            self.lista_sprites.remove(enemigo.sprite)
+        # Verificar colisiones con enemigos (solo si no está en cooldown)
+        if self._tiempo_ultimo_combate <= 0:
+            for enemigo in list(
+                self.escenario.enemigos
+            ):  # Usar list() para poder modificar
+                if (
+                    enemigo.esta_vivo()
+                    and hasattr(enemigo, "sprite")
+                    and enemigo.sprite
+                ):
+                    if arcade.check_for_collision(self.sprite_jugador, enemigo.sprite):
+                        # ¡Combate!
+                        resultado = SistemaCombate.atacar(self.personaje, enemigo)
+                        print(f"¡Combate! Daño: {resultado.dano_infligido}")
+
+                        if resultado.enemigo_derrotado:
+                            # Ganar experiencia y oro
+                            self.personaje.ganar_experiencia(
+                                enemigo.experiencia_al_derrotar
+                            )
+                            self.personaje._oro += enemigo.oro_al_derrotar
+                            print(
+                                f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
+                            )
+                            # Eliminar sprite
+                            if enemigo.sprite in self.lista_sprites:
+                                self.lista_sprites.remove(enemigo.sprite)
+                            # Remover enemigo de la lista
+                            self.escenario.enemigos.remove(enemigo)
+
+                        # Activar cooldown
+                        self._tiempo_ultimo_combate = self.COMBATE_COOLDOWN
+                        break  # Solo un combate por frame
 
         # Verificar colisiones con items
         for item in list(self.escenario.items):
@@ -146,10 +167,7 @@ class Juego(arcade.Window):
 
     def on_draw(self):
         """Dibuja el juego."""
-        # En Arcade moderno, no es necesario clear() - se hace automáticamente
-
-        # Color de fondo (verde oscuro = bosque)
-        self.bg_color = arcade.color.DARK_GREEN
+        # El background color ya se configuró en __init__
 
         # Dibujar sprites
         self.lista_sprites.draw()
