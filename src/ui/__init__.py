@@ -1,3 +1,5 @@
-"""UI del juego.
-Interfaces de usuario como HUD, menús y diálogos.
-"""
+"""Módulo de UI del juego."""
+
+from .hud import HUD
+
+__all__ = ["HUD"]
