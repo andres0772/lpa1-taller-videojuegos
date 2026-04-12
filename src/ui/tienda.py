@@ -190,9 +190,9 @@ class MenuTienda:
 
     def _dibujar_menu_principal(self) -> None:
         """Dibuja el menú principal de la tienda."""
-        # Fondo del panel
-        ancho = 400
-        alto = 350
+        # Fondo del panel - más pequeño y compacto
+        ancho = 320
+        alto = 280
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
 
@@ -216,56 +216,74 @@ class MenuTienda:
 
         # Título
         arcade.draw_text(
-            "🛒 TIENDA",
-            x,
-            y + alto // 2 - 15,
+            "TIENDA",
+            x - 130,
+            y + alto // 2 - 25,
             arcade.color.GOLD,
-            24,
-            anchor_x="center",
+            22,
+            anchor_x="left",
             anchor_y="top",
             bold=True,
         )
 
         # Oro del jugador
         arcade.draw_text(
-            f"Tu oro: {self._personaje.oro} 💰",
-            x,
-            y + alto // 2 - 40,
+            f"Tu oro: {self._personaje.oro}",
+            x - 130,
+            y + alto // 2 - 55,
             arcade.color.YELLOW,
             16,
-            anchor_x="center",
+            anchor_x="left",
             anchor_y="top",
         )
 
-        # Opciones (con mayor espaciado entre líneas)
-        opciones = [
-            ("[1] Comprar equipamiento", 0, arcade.color.WHITE),
-            ("", -30, arcade.color.BLACK),  # Línea en blanco
-            ("[2] Vender items del inventario", -55, arcade.color.WHITE),
-            ("", -80, arcade.color.BLACK),  # Línea en blanco
-            ("[3] Equipar mejores items", -105, arcade.color.CYAN),
-            ("", -130, arcade.color.BLACK),  # Línea en blanco
-            ("[4] Salir / ESC", -155, arcade.color.GRAY),
-        ]
+        # Opciones con más espacio entre cada una
+        y_inicio = y + alto // 2 - 85
 
-        for texto, desfase, color in opciones:
-            arcade.draw_text(
-                texto,
-                x - 120,
-                y + alto // 2 - 70 + desfase,
-                color,
-                16,
-                anchor_x="left",
-            )
+        arcade.draw_text(
+            "[1] Comprar equipamiento",
+            x - 130,
+            y_inicio,
+            arcade.color.WHITE,
+            16,
+            anchor_x="left",
+        )
 
-        # Stats actuales
+        arcade.draw_text(
+            "[2] Vender items del inventario",
+            x - 130,
+            y_inicio - 35,
+            arcade.color.WHITE,
+            16,
+            anchor_x="left",
+        )
+
+        arcade.draw_text(
+            "[3] Equipar mejores items",
+            x - 130,
+            y_inicio - 70,
+            arcade.color.CYAN,
+            16,
+            anchor_x="left",
+        )
+
+        arcade.draw_text(
+            "[4] Salir / ESC",
+            x - 130,
+            y_inicio - 105,
+            arcade.color.GRAY,
+            16,
+            anchor_x="left",
+        )
+
+        # Stats actuales - más pequeños y a la izquierda
         arcade.draw_text(
             f"ATAQUE: {self._personaje.ataque_total} | DEFENSA: {self._personaje.defensa_total}",
-            x,
-            y - alto // 2 + 30,
+            x - 130,
+            y - alto // 2 + 25,
             arcade.color.GREEN,
-            14,
-            anchor_x="center",
+            12,
+            anchor_x="left",
             anchor_y="bottom",
         )
 
