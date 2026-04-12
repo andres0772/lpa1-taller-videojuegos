@@ -31,9 +31,6 @@ class Juego(arcade.Window):
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
 
-        # Color de fondo según el área (inicial = bosque)
-        self._actualizar_color_fondo()
-
         # Crear personaje
         self.personaje = Personaje("Heroe")
 
@@ -45,6 +42,9 @@ class Juego(arcade.Window):
 
         # Crear escenario (las áreas ya generan su contenido automáticamente)
         self.escenario = Escenario(ANCHO_VENTANA, ALTO_VENTANA)
+
+        # Color de fondo según el área (inicial = bosque)
+        self._actualizar_color_fondo()
 
         # Crear HUD
         self.hud = HUD(self.personaje)
