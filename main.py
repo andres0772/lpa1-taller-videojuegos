@@ -141,12 +141,12 @@ class Juego(arcade.Window):
                 distancia = (dx**2 + dy**2) ** 0.5
                 if distancia > 0:
                     velocidad_enemigo = self.VELOCIDAD_ENEMIGO * delta_time
-                    # Mover solo si está a más de 50 pixels (evitar superposición directa)
-                    if distancia > 50:
-                        dx_normalizado = dx / distancia
-                        dy_normalizado = dy / distancia
-                        enemigo.sprite.center_x += dx_normalizado * velocidad_enemigo
-                        enemigo.sprite.center_y += dy_normalizado * velocidad_enemigo
+                    # Los enemigos siempre se mueven hacia el jugador
+                    # Se acercan hasta tener contacto físico
+                    dx_normalizado = dx / distancia
+                    dy_normalizado = dy / distancia
+                    enemigo.sprite.center_x += dx_normalizado * velocidad_enemigo
+                    enemigo.sprite.center_y += dy_normalizado * velocidad_enemigo
 
                 # Mantener dentro de los límites de la pantalla
                 enemigo.sprite.center_x = max(
