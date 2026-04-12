@@ -26,6 +26,7 @@ class Juego(arcade.Window):
 
     COMBATE_COOLDOWN = 1.0  # segundos entre ataques
     VELOCIDAD_JUGADOR = 150  # pixels por segundo
+    VELOCIDAD_ENEMIGO = 50  # pixels por segundo (más lento que el jugador)
 
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
@@ -129,6 +130,36 @@ class Juego(arcade.Window):
         self.personaje.center_x = self.sprite_jugador.center_x
         self.personaje.center_y = self.sprite_jugador.center_y
 
+        # Actualizar movimiento de enemigos (persecución simple)
+        for enemigo in self.escenario.enemigos:
+            if enemigo.esta_vivo() and hasattr(enemigo, "sprite") and enemigo.sprite:
+                # Calcular dirección hacia el jugador
+                dx = self.sprite_jugador.center_x - enemigo.sprite.center_x
+                dy = self.sprite_jugador.center_y - enemigo.sprite.center_y
+
+                # Normalizar y mover lentamente hacia el jugador
+                distancia = (dx**2 + dy**2) ** 0.5
+                if distancia > 0:
+                    velocidad_enemigo = self.VELOCIDAD_ENEMIGO * delta_time
+                    # Mover solo si está a más de 50 pixels (evitar superposición directa)
+                    if distancia > 50:
+                        dx_normalizado = dx / distancia
+                        dy_normalizado = dy / distancia
+                        enemigo.sprite.center_x += dx_normalizado * velocidad_enemigo
+                        enemigo.sprite.center_y += dy_normalizado * velocidad_enemigo
+
+                # Mantener dentro de los límites de la pantalla
+                enemigo.sprite.center_x = max(
+                    20, min(ANCHO_VENTANA - 20, enemigo.sprite.center_x)
+                )
+                enemigo.sprite.center_y = max(
+                    20, min(ALTO_VENTANA - 20, enemigo.sprite.center_y)
+                )
+
+                # Sincronizar posición con el objeto Enemigo
+                enemigo.center_x = enemigo.sprite.center_x
+                enemigo.center_y = enemigo.sprite.center_y
+
         # Actualizar cooldown de combate
         self._tiempo_ultimo_combate -= delta_time
 
@@ -179,6 +210,9 @@ class Juego(arcade.Window):
 
     def on_draw(self):
         """Dibuja el juego."""
+        # Limpiar la pantalla cada frame para evitar rastros
+        self.clear()
+
         # El background color ya se configuró en __init__
 
         # Dibujar sprites
