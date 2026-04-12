@@ -48,10 +48,12 @@ class Area:
         ancho: int = 1080,
         alto: int = 720,
         generar_contenido: bool = True,
+        nivel: int = 1,
     ):
         self._tipo = tipo
         self._ancho = ancho
         self._alto = alto
+        self._nivel = nivel  # Nivel de dificultad progresiva
         self._enemigos: list[Enemigo] = []
         self._items: list[Item] = []
 
@@ -103,16 +105,34 @@ class Area:
         tipos = self._config["enemigos_tipo"]
         nombres = self._config["enemigos_nombres"]
 
-        for _ in range(cantidad):
+        # R7.2: Agregar jefe en el área 3 (Castillo Oscuro)
+        generar_jefe = self._tipo == "castillo"
+
+        # Multiplicadores según el nivel del juego
+        multiplicador_hp = 1.0 + (self._nivel - 1) * 0.3  # +30% HP por nivel
+        multiplicador_ataque = 1.0 + (self._nivel - 1) * 0.2  # +20% ataque por nivel
+
+        for i in range(cantidad):
             tipo = random.choice(tipos)
             nombre = random.choice(nombres.get(tipo, ["Criatura"]))
-            hp = random.randint(20, 50)
-            ataque = random.randint(5, 15)
-            defensa = random.randint(0, 5)
-            xp = random.randint(10, 30)
-            oro = random.randint(5, 20)
+            hp = int(random.randint(20, 50) * multiplicador_hp)
+            ataque = int(random.randint(5, 15) * multiplicador_ataque)
+            defensa = int(random.randint(0, 5) * multiplicador_hp)
+            xp = int(random.randint(10, 30) * multiplicador_hp)
+            oro = int(random.randint(5, 20) * multiplicador_hp)
+            es_jefe = False
 
-            enemigo = Enemigo(nombre, hp, ataque, defensa, tipo, xp, oro)
+            # El primer enemigo del castillo es el jefe
+            if generar_jefe and i == 0:
+                nombre = "Señor Oscuro"
+                hp = int(200 * multiplicador_hp)  # Más HP que un enemigo normal
+                ataque = int(25 * multiplicador_ataque)  # Más ataque
+                defensa = int(15 * multiplicador_hp)
+                xp = int(500 * multiplicador_hp)  # Mucha XP
+                oro = int(300 * multiplicador_hp)
+                es_jefe = True
+
+            enemigo = Enemigo(nombre, hp, ataque, defensa, tipo, xp, oro, es_jefe)
             enemigo.center_x = random.randint(50, self._ancho - 50)
             enemigo.center_y = random.randint(50, self._alto - 50)
             self._enemigos.append(enemigo)

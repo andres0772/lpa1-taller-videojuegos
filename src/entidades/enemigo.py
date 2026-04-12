@@ -14,12 +14,14 @@ class Enemigo(Entidad):
         tipo: Literal["terrestre", "volador"],
         experiencia_al_derrotar: int = 10,
         oro_al_derrotar: int = 5,
+        es_jefe: bool = False,
     ):
         super().__init__(hp_max, ataque, defensa)
         self._nombre = nombre
         self._tipo = tipo
         self._experiencia_al_derrotar = experiencia_al_derrotar
         self._oro_al_derrotar = oro_al_derrotar
+        self._es_jefe = es_jefe  # Flag para identificar bosses
         # Posición en el escenario
         self.center_x: float = 0.0
         self.center_y: float = 0.0
@@ -39,6 +41,11 @@ class Enemigo(Entidad):
     @property
     def oro_al_derrotar(self) -> int:
         return self._oro_al_derrotar
+
+    @property
+    def es_jefe(self) -> bool:
+        """Retorna True si este enemigo es un jefe."""
+        return self._es_jefe
 
     def esta_vivo(self) -> bool:
         return self._hp_actual > 0

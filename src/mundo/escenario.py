@@ -17,6 +17,7 @@ class Escenario:
         self._alto = alto
         self._areas: dict[str, Area] = {}
         self._area_actual: str = area_inicial
+        self._nivel: int = 1  # Nivel de dificultad progresiva
 
         # Crear todas las áreas
         self._crear_areas()
@@ -25,8 +26,25 @@ class Escenario:
         """Crea todas las áreas del juego."""
         for tipo in self.AREAS_DISPONIBLES:
             self._areas[tipo] = Area(
-                tipo, self._ancho, self._alto, generar_contenido=True
+                tipo, self._ancho, self._alto, generar_contenido=True, nivel=self._nivel
             )
+
+    @property
+    def nivel(self) -> int:
+        """Retorna el nivel de dificultad actual."""
+        return self._nivel
+
+    def subir_nivel(self) -> None:
+        """Aumenta el nivel de dificultad del juego."""
+        self._nivel += 1
+        # Regenerar todas las áreas con el nuevo nivel
+        for tipo in self.AREAS_DISPONIBLES:
+            self._areas[tipo] = Area(
+                tipo, self._ancho, self._alto, generar_contenido=True, nivel=self._nivel
+            )
+        print(
+            f"¡Nivel del juego aumentado a {self._nivel}! Los enemigos ahora son más difíciles."
+        )
 
     @property
     def ancho(self) -> int:
@@ -106,7 +124,11 @@ class Escenario:
     def regenerar_contenido(self):
         """Regenera el contenido del área actual (enemies y items)."""
         self._areas[self._area_actual] = Area(
-            self._area_actual, self._ancho, self._alto, generar_contenido=True
+            self._area_actual,
+            self._ancho,
+            self._alto,
+            generar_contenido=True,
+            nivel=self._nivel,
         )
 
     def __repr__(self) -> str:

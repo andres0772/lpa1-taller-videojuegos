@@ -25,8 +25,11 @@ class Juego(arcade.Window):
     """Clase principal del juego."""
 
     COMBATE_COOLDOWN = 1.0  # segundos entre ataques
+    ATAQUE_COOLDOWN = 0.5  # segundos entre ataques del jugador
+    RADIO_ATAQUE = 60  # pixels de alcance para atacar
     VELOCIDAD_JUGADOR = 150  # pixels por segundo
     VELOCIDAD_ENEMIGO = 50  # pixels por segundo (más lento que el jugador)
+    PUNTAJE_VICTORIA = 1000  # puntos necesarios para victoria por puntaje
 
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
@@ -34,8 +37,20 @@ class Juego(arcade.Window):
         # Crear personaje
         self.personaje = Personaje("Heroe")
 
-        # Cooldown de combate para evitar muerte por frame
+        # Cooldown de combate (daño recibido del enemigo)
         self._tiempo_ultimo_combate = 0.0
+        # Cooldown de ataque del jugador
+        self._tiempo_ultimo_ataque = 0.0
+
+        # Feedback visual de ataque
+        self._jugador_atacando = False
+        self._tiempo_ataque_fx = 0.0
+
+        # Áreas visitadas (para victoria por exploración)
+        self._areas_visitadas: set[str] = set()
+        self._areas_visitadas.add("bosque")  # Área inicial cuenta como visitada
+        self._juego_terminado = False
+        self._mensaje_victoria = ""
 
         # Keys presionadas para movimiento continuo
         self._keys_presionadas = set()
@@ -80,6 +95,9 @@ class Juego(arcade.Window):
                 sprite = self._crear_sprite_item(arcade.color.GOLD)
                 self.lista_sprites.append(sprite)
                 item.sprite = sprite
+
+        # Nivel del juego (progresivo)
+        self._nivel_juego = 1
 
     def _crear_sprite_jugador(self):
         """Crea el sprite del jugador (rectángulo azul)."""
@@ -136,6 +154,9 @@ class Juego(arcade.Window):
         if self.escenario.cambiar_area(tipo):
             self._actualizar_color_fondo()
 
+            # Registrar área como visitada
+            self._areas_visitadas.add(self.escenario.area_actual)
+
             # Limpiar sprites anteriores (excepto el jugador)
             self.lista_sprites.clear()
             self.lista_sprites.append(self.sprite_jugador)
@@ -150,6 +171,12 @@ class Juego(arcade.Window):
 
     def on_key_press(self, key, modifiers):
         """Maneja eventos de teclado."""
+        # Si el juego terminó y se presiona ESC, cerrar
+        if self._juego_terminado:
+            if key == arcade.key.ESCAPE:
+                arcade.close_window()
+            return
+
         # Si la tienda está abierta, manejar input ahí
         if self._tienda_abierta:
             if key == arcade.key.ESCAPE:
@@ -191,11 +218,18 @@ class Juego(arcade.Window):
         if key == arcade.key.M:
             self.escenario.ir_area_siguiente()
             self._actualizar_color_fondo()
+            # Registrar área como visitada
+            self._areas_visitadas.add(self.escenario.area_actual)
             # Reiniciar posición del jugador en el centro
             self.sprite_jugador.center_x = ANCHO_VENTANA // 2
             self.sprite_jugador.center_y = ALTO_VENTANA // 2
             self._cargar_area_actual()
             print(f"¡Has entrado a {self.escenario.nombre_area_actual}!")
+            return
+
+        # Atacar con ESPACIO
+        if key == arcade.key.SPACE:
+            self._intentar_atacar()
             return
 
         self._keys_presionadas.add(key)
@@ -204,6 +238,75 @@ class Juego(arcade.Window):
         """Maneja cuando se suelta una tecla."""
         if key in self._keys_presionadas:
             self._keys_presionadas.remove(key)
+
+    def _intentar_atacar(self):
+        """Intenta atacar a un enemigo cercano."""
+        # No atacar si está en cooldown o el juego terminó
+        if self._tiempo_ultimo_ataque > 0:
+            return
+        if self._juego_terminado:
+            return
+
+        # Buscar enemigo en rango
+        for enemigo in self.escenario.enemigos:
+            if enemigo.esta_vivo() and hasattr(enemigo, "sprite") and enemigo.sprite:
+                dx = self.sprite_jugador.center_x - enemigo.sprite.center_x
+                dy = self.sprite_jugador.center_y - enemigo.sprite.center_y
+                distancia = (dx**2 + dy**2) ** 0.5
+
+                if distancia <= self.RADIO_ATAQUE:
+                    # ¡Ataque exitoso!
+                    resultado = SistemaCombate.atacar(self.personaje, enemigo)
+                    print(f"¡ATAQUE! Daño inflicted: {resultado.dano_infligido}")
+
+                    # Feedback visual
+                    self._jugador_atacando = True
+                    self._tiempo_ataque_fx = 0.2  # 200ms de efecto visual
+
+                    # Cooldown de ataque
+                    self._tiempo_ultimo_ataque = self.ATAQUE_COOLDOWN
+
+                    if resultado.enemigo_derrotado:
+                        # Ganar experiencia y oro
+                        self.personaje.ganar_experiencia(
+                            enemigo.experiencia_al_derrotar
+                        )
+                        self.personaje._oro += enemigo.oro_al_derrotar
+                        print(
+                            f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
+                        )
+
+                        # Verificar victoria por jefe
+                        if enemigo.es_jefe:
+                            self._juego_terminado = True
+                            self._mensaje_victoria = (
+                                "¡Has derrotado al JEFE! ¡VICTORIA!"
+                            )
+
+                        # Eliminar sprite
+                        if enemigo.sprite in self.lista_sprites:
+                            self.lista_sprites.remove(enemigo.sprite)
+                        self.escenario.enemigos.remove(enemigo)
+
+                    break  # Solo un enemigo por ataque
+
+    def _verificar_victoria(self):
+        """Verifica si se cumple alguna condición de victoria."""
+        if self._juego_terminado:
+            return
+
+        # R7.1: Victoria por Exploración
+        if len(self._areas_visitadas) >= 3:
+            self._juego_terminado = True
+            self._mensaje_victoria = "¡Has explorado todo! ¡VICTORIA!"
+            return
+
+        # R7.3: Victoria por Puntaje (experiencia + oro)
+        puntaje = self.personaje.experiencia + self.personaje.oro
+        if puntaje >= self.PUNTAJE_VICTORIA:
+            self._juego_terminado = True
+            self._mensaje_victoria = "¡Has alcanzado el puntaje máximo! ¡VICTORIA!"
+            return
 
     def on_update(self, delta_time):
         """Actualiza el estado del juego."""
@@ -269,8 +372,15 @@ class Juego(arcade.Window):
                 enemigo.center_x = enemigo.sprite.center_x
                 enemigo.center_y = enemigo.sprite.center_y
 
-        # Actualizar cooldown de combate
+        # Actualizar cooldowns
         self._tiempo_ultimo_combate -= delta_time
+        self._tiempo_ultimo_ataque -= delta_time
+
+        # Actualizar efecto visual de ataque
+        if self._tiempo_ataque_fx > 0:
+            self._tiempo_ataque_fx -= delta_time
+            if self._tiempo_ataque_fx <= 0:
+                self._jugador_atacando = False
 
         # Verificar colisiones con enemigos (solo si no está en cooldown)
         if self._tiempo_ultimo_combate <= 0:
@@ -296,6 +406,14 @@ class Juego(arcade.Window):
                             print(
                                 f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
                             )
+
+                            # Verificar victoria por jefe
+                            if enemigo.es_jefe:
+                                self._juego_terminado = True
+                                self._mensaje_victoria = (
+                                    "¡Has derrotado al JEFE! ¡VICTORIA!"
+                                )
+
                             # Eliminar sprite
                             if enemigo.sprite in self.lista_sprites:
                                 self.lista_sprites.remove(enemigo.sprite)
@@ -323,6 +441,29 @@ class Juego(arcade.Window):
                         if item.sprite in self.lista_sprites:
                             self.lista_sprites.remove(item.sprite)
                         self.escenario.items.remove(item)
+
+        # Verificar si TODOS los enemigos fueron derrotados → cambio automático de nivel
+        if not self.escenario.enemigos and not self._juego_terminado:
+            # Aumentar nivel del juego
+            self._nivel_juego += 1
+            # Subir nivel del escenario (dificultad progresiva)
+            self.escenario.subir_nivel()
+            # Avanzar al área siguiente
+            self.escenario.ir_area_siguiente()
+            self._actualizar_color_fondo()
+            # Registrar área como visitada
+            self._areas_visitadas.add(self.escenario.area_actual)
+            # Reiniciar posición del jugador en el centro
+            self.sprite_jugador.center_x = ANCHO_VENTANA // 2
+            self.sprite_jugador.center_y = ALTO_VENTANA // 2
+            # Cargar nuevo contenido
+            self._cargar_area_actual()
+            print(
+                f"¡Todos los enemigos derrotados! Nivel {self._nivel_juego} - ¡Has entrado a {self.escenario.nombre_area_actual}!"
+            )
+
+        # Verificar condiciones de victoria
+        self._verificar_victoria()
 
         # Verificar si el personaje murió
         if not self.personaje.esta_vivo():
@@ -352,9 +493,15 @@ class Juego(arcade.Window):
         if self._pausa_abierta:
             self.pausa.dibujar()
 
+        # Feedback visual de ataque (cambiar color del jugador temporalmente)
+        if self._jugador_atacando:
+            self.sprite_jugador.color = arcade.color.YELLOW
+        else:
+            self.sprite_jugador.color = arcade.color.BLUE
+
         # Instrucciones
         arcade.draw_text(
-            "Flechas: mover | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
+            "Flechas: mover | [ESPACIO] Atacar | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
             ANCHO_VENTANA // 2,
             ALTO_VENTANA - 30,
             arcade.color.WHITE,
@@ -371,6 +518,26 @@ class Juego(arcade.Window):
             14,
             anchor_x="left",
         )
+
+        # Mostrar mensaje de victoria si el juego terminó
+        if self._juego_terminado and self._mensaje_victoria:
+            arcade.draw_text(
+                self._mensaje_victoria,
+                ANCHO_VENTANA // 2,
+                ALTO_VENTANA // 2,
+                arcade.color.GOLD,
+                32,
+                anchor_x="center",
+                bold=True,
+            )
+            arcade.draw_text(
+                "Presiona [ESC] para salir",
+                ANCHO_VENTANA // 2,
+                ALTO_VENTANA // 2 - 50,
+                arcade.color.WHITE,
+                18,
+                anchor_x="center",
+            )
 
 
 def main():
