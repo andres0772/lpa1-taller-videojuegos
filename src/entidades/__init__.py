@@ -3,5 +3,6 @@
 from .entidad import Entidad
 from .personaje import Personaje
 from .enemigo import Enemigo
+from .proyectil import Proyectil
 
-__all__ = ["Entidad", "Personaje", "Enemigo"]
+__all__ = ["Entidad", "Personaje", "Enemigo", "Proyectil"]

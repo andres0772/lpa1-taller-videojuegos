@@ -10,7 +10,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import arcade
-from src.entidades import Personaje, Enemigo
+import random
+from src.entidades import Personaje, Enemigo, Proyectil
 from src.mundo import Escenario
 from src.ui import HUD, MenuTienda, MenuPausa
 from src.items import Tesoro, TrampaExplosiva
@@ -30,6 +31,11 @@ class Juego(arcade.Window):
     VELOCIDAD_JUGADOR = 150  # pixels por segundo
     VELOCIDAD_ENEMIGO = 50  # pixels por segundo (más lento que el jugador)
     PUNTAJE_VICTORIA = 1000  # puntos necesarios para victoria por puntaje
+    # Sistema de proyectiles
+    VELOCIDAD_PROYECTIL = 400  # pixels por segundo
+    DANO_PROYECTIL_JUGADOR = 15  # daño del proyectil del jugador
+    DANO_PROYECTIL_ENEMIGO = 8  # daño del proyectil del enemigo
+    PROYECTIL_COOLDOWN = 0.3  # segundos entre disparos
 
     def __init__(self):
         super().__init__(ANCHO_VENTANA, ALTO_VENTANA, TITULO)
@@ -42,9 +48,15 @@ class Juego(arcade.Window):
         # Cooldown de ataque del jugador
         self._tiempo_ultimo_ataque = 0.0
 
+        # Cooldown de proyectil
+        self._tiempo_ultimo_proyectil = 0.0
+
         # Feedback visual de ataque
         self._jugador_atacando = False
         self._tiempo_ataque_fx = 0.0
+
+        # Dirección actual del jugador (para disparar)
+        self._direccion_disparo = (0, -1)  # Por defecto dispara hacia abajo
 
         # Áreas visitadas (para victoria por exploración)
         self._areas_visitadas: set[str] = set()
@@ -79,6 +91,13 @@ class Juego(arcade.Window):
         # Lista de sprites para renderizado
         self.lista_sprites = arcade.SpriteList()
         self.lista_sprites.append(self.sprite_jugador)
+
+        # Lista de proyectiles
+        self.proyectiles: list[Proyectil] = []
+        self.lista_proyectiles = arcade.SpriteList()
+
+        # Timers para disparar de enemigos (cada enemigo tiene su propio timer)
+        self._timers_disparo_enemigo: dict[Enemigo, float] = {}
 
         # Agregar enemigos como sprites
         for enemigo in self.escenario.enemigos:
@@ -161,6 +180,11 @@ class Juego(arcade.Window):
             self.lista_sprites.clear()
             self.lista_sprites.append(self.sprite_jugador)
 
+            # Limpiar proyectiles al cambiar de área
+            self.lista_proyectiles.clear()
+            self.proyectiles.clear()
+            self._timers_disparo_enemigo.clear()
+
             # Reiniciar posición del jugador en el centro
             self.sprite_jugador.center_x = ANCHO_VENTANA // 2
             self.sprite_jugador.center_y = ALTO_VENTANA // 2
@@ -229,8 +253,18 @@ class Juego(arcade.Window):
 
         # Atacar con ESPACIO
         if key == arcade.key.SPACE:
-            self._intentar_atacar()
+            self._intentar_disparar()
             return
+
+        # Rastrear dirección para el disparo
+        if key == arcade.key.LEFT:
+            self._direccion_disparo = (-1, 0)
+        elif key == arcade.key.RIGHT:
+            self._direccion_disparo = (1, 0)
+        elif key == arcade.key.UP:
+            self._direccion_disparo = (0, 1)
+        elif key == arcade.key.DOWN:
+            self._direccion_disparo = (0, -1)
 
         self._keys_presionadas.add(key)
 
@@ -289,6 +323,113 @@ class Juego(arcade.Window):
                         self.escenario.enemigos.remove(enemigo)
 
                     break  # Solo un enemigo por ataque
+
+    def _crear_sprite_proyectil(self, proyectil: Proyectil):
+        """Crea el sprite de un proyectil."""
+        color = proyectil.color
+        # Convertir RGB a color de arcade
+        color_arcade = (
+            arcade.color.CYAN if proyectil.es_del_jugador else arcade.color.ORANGE
+        )
+        sprite = arcade.SpriteSolidColor(
+            proyectil.tamaño, proyectil.tamaño, color=color_arcade
+        )
+        sprite.center_x = proyectil.center_x
+        sprite.center_y = proyectil.center_y
+        return sprite
+
+    def _intentar_disparar(self):
+        """Intenta disparar un proyectil."""
+        if self._tiempo_ultimo_proyectil > 0:
+            return
+        if self._juego_terminado:
+            return
+
+        # Obtener dirección normalizada
+        dx, dy = self._direccion_disparo
+
+        # Si no hay dirección, usar hacia abajo
+        if dx == 0 and dy == 0:
+            dx, dy = 0, -1
+
+        # Normalizar
+        magnitud = (dx**2 + dy**2) ** 0.5
+        if magnitud > 0:
+            dx /= magnitud
+            dy /= magnitud
+
+        # Crear proyectil desde la posición del jugador
+        proyectil = Proyectil(
+            x=self.sprite_jugador.center_x,
+            y=self.sprite_jugador.center_y,
+            direccion_x=dx,
+            direccion_y=dy,
+            dano=self.DANO_PROYECTIL_JUGADOR,
+            velocidad=self.VELOCIDAD_PROYECTIL,
+            es_del_jugador=True,
+        )
+
+        # Crear sprite del proyectil
+        sprite = self._crear_sprite_proyectil(proyectil)
+        proyectil.sprite = sprite
+        self.lista_proyectiles.append(sprite)
+
+        # Agregar a la lista de proyectiles
+        self.proyectiles.append(proyectil)
+
+        print(f"¡DISPARO! Daño: {proyectil.dano}")
+
+        # Cooldown
+        self._tiempo_ultimo_proyectil = self.PROYECTIL_COOLDOWN
+
+    def _enemigo_dispara(self, enemigo: Enemigo, delta_time: float):
+        """Maneja el temporizador de disparo de un enemigo."""
+        if not hasattr(enemigo, "sprite") or not enemigo.sprite:
+            return
+
+        # Inicializar timer si no existe
+        if enemigo not in self._timers_disparo_enemigo:
+            # Tiempo aleatorio entre 2-5 segundos
+            self._timers_disparo_enemigo[enemigo] = random.uniform(2.0, 5.0)
+            return
+
+        # Reducir timer
+        self._timers_disparo_enemigo[enemigo] -= delta_time
+
+        # Si llegó a cero, disparar
+        if self._timers_disparo_enemigo[enemigo] <= 0:
+            # Calcular dirección hacia el jugador
+            dx = self.sprite_jugador.center_x - enemigo.sprite.center_x
+            dy = self.sprite_jugador.center_y - enemigo.sprite.center_y
+
+            # Normalizar
+            magnitud = (dx**2 + dy**2) ** 0.5
+            if magnitud > 0:
+                dx /= magnitud
+                dy /= magnitud
+
+            # Crear proyectil del enemigo
+            proyectil = Proyectil(
+                x=enemigo.sprite.center_x,
+                y=enemigo.sprite.center_y,
+                direccion_x=dx,
+                direccion_y=dy,
+                dano=self.DANO_PROYECTIL_ENEMIGO,
+                velocidad=self.VELOCIDAD_PROYECTIL * 0.7,  # Más lento
+                es_del_jugador=False,
+            )
+
+            # Crear sprite
+            sprite = self._crear_sprite_proyectil(proyectil)
+            proyectil.sprite = sprite
+            self.lista_proyectiles.append(sprite)
+
+            self.proyectiles.append(proyectil)
+
+            print(f"¡PROYECTIL ENEMIGO! Daño: {proyectil.dano}")
+
+            # Reiniciar timer con tiempo aleatorio
+            self._timers_disparo_enemigo[enemigo] = random.uniform(2.0, 5.0)
 
     def _verificar_victoria(self):
         """Verifica si se cumple alguna condición de victoria."""
@@ -372,9 +513,95 @@ class Juego(arcade.Window):
                 enemigo.center_x = enemigo.sprite.center_x
                 enemigo.center_y = enemigo.sprite.center_y
 
+                # El enemigo puede dispara
+                self._enemigo_dispara(enemigo, delta_time)
+
         # Actualizar cooldowns
         self._tiempo_ultimo_combate -= delta_time
         self._tiempo_ultimo_ataque -= delta_time
+        self._tiempo_ultimo_proyectil -= delta_time
+
+        # Actualizar proyectiles del jugador
+        for proyectil in list(self.proyectiles):
+            if not proyectil.activo:
+                continue
+
+            # Actualizar posición
+            proyectil.actualizar(delta_time)
+
+            # Sincronizar sprite
+            if proyectil.sprite:
+                proyectil.sprite.center_x = proyectil.center_x
+                proyectil.sprite.center_y = proyectil.center_y
+
+            # Verificar si salió de la pantalla
+            if proyectil.esta_fuera_de_pantalla(ANCHO_VENTANA, ALTO_VENTANA):
+                if proyectil.sprite in self.lista_proyectiles:
+                    self.lista_proyectiles.remove(proyectil.sprite)
+                self.proyectiles.remove(proyectil)
+                proyectil.activo = False
+                continue
+
+            # Verificar colisión con enemigos (proyectiles del jugador)
+            if proyectil.es_del_jugador:
+                for enemigo in list(self.escenario.enemigos):
+                    if (
+                        enemigo.esta_vivo()
+                        and hasattr(enemigo, "sprite")
+                        and enemigo.sprite
+                        and proyectil.sprite
+                    ):
+                        if arcade.check_for_collision(proyectil.sprite, enemigo.sprite):
+                            # ¡Impacto!
+                            resultado = SistemaCombate.atacar(self.personaje, enemigo)
+                            # Aplicar daño extra del proyectil si el enemigo sigue vivo
+                            if enemigo.esta_vivo():
+                                dano_proyectil = proyectil.dano
+                                enemigo.recibir_daño(dano_proyectil)
+                                print(
+                                    f"¡IMPACTO! Proyectil causó {dano_proyectil} daño"
+                                )
+
+                            if not enemigo.esta_vivo():
+                                self.personaje.ganar_experiencia(
+                                    enemigo.experiencia_al_derrotar
+                                )
+                                self.personaje._oro += enemigo.oro_al_derrotar
+                                print(
+                                    f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
+                                )
+
+                                if enemigo.es_jefe:
+                                    self._juego_terminado = True
+                                    self._mensaje_victoria = (
+                                        "¡Has derrotado al JEFE! ¡VICTORIA!"
+                                    )
+
+                                if enemigo.sprite in self.lista_sprites:
+                                    self.lista_sprites.remove(enemigo.sprite)
+                                self.escenario.enemigos.remove(enemigo)
+
+                            # Eliminar proyectil
+                            if proyectil.sprite in self.lista_proyectiles:
+                                self.lista_proyectiles.remove(proyectil.sprite)
+                            self.proyectiles.remove(proyectil)
+                            proyectil.activo = False
+                            break
+            else:
+                # Proyectil del enemigo - verificar colisión con el jugador
+                if proyectil.sprite:
+                    if arcade.check_for_collision(
+                        self.sprite_jugador, proyectil.sprite
+                    ):
+                        dano = proyectil.dano
+                        self.personaje.recibir_daño(dano)
+                        print(f"¡PROYECTIL ENEMIGO! Daño recibido: {dano}")
+
+                        # Eliminar proyectil
+                        if proyectil.sprite in self.lista_proyectiles:
+                            self.lista_proyectiles.remove(proyectil.sprite)
+                        self.proyectiles.remove(proyectil)
+                        proyectil.activo = False
 
         # Actualizar efecto visual de ataque
         if self._tiempo_ataque_fx > 0:
@@ -482,6 +709,9 @@ class Juego(arcade.Window):
         # Dibujar sprites
         self.lista_sprites.draw()
 
+        # Dibujar proyectiles
+        self.lista_proyectiles.draw()
+
         # Dibujar HUD
         self.hud.dibujar()
 
@@ -501,7 +731,7 @@ class Juego(arcade.Window):
 
         # Instrucciones
         arcade.draw_text(
-            "Flechas: mover | [ESPACIO] Atacar | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
+            "Flechas: mover | [ESPACIO] Disparar | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
             ANCHO_VENTANA // 2,
             ALTO_VENTANA - 30,
             arcade.color.WHITE,
