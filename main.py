@@ -125,6 +125,10 @@ class Juego(arcade.Window):
 
     def on_update(self, delta_time):
         """Actualiza el estado del juego."""
+        # No procesar combate si la tienda está abierta
+        if self._tienda_abierta:
+            return
+
         # Movimiento continuo basado en keys presionadas
         velocidad = self.VELOCIDAD_JUGADOR * delta_time
 

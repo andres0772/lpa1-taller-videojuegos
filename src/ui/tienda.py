@@ -237,12 +237,15 @@ class MenuTienda:
             anchor_y="top",
         )
 
-        # Opciones
+        # Opciones (con mayor espaciado entre líneas)
         opciones = [
-            ("[1] Comprar equipamiento", 20, arcade.color.WHITE),
-            ("[2] Vender items del inventario", -10, arcade.color.WHITE),
-            ("[3] Equipar mejores items", -40, arcade.color.CYAN),
-            ("[4] Salir / ESC", -70, arcade.color.GRAY),
+            ("[1] Comprar equipamiento", 25, arcade.color.WHITE),
+            ("", -15, arcade.color.BLACK),  # Línea en blanco
+            ("[2] Vender items del inventario", -40, arcade.color.WHITE),
+            ("", -80, arcade.color.BLACK),  # Línea en blanco
+            ("[3] Equipar mejores items", -105, arcade.color.CYAN),
+            ("", -130, arcade.color.BLACK),  # Línea en blanco
+            ("[4] Salir / ESC", -155, arcade.color.GRAY),
         ]
 
         for texto, desfase, color in opciones:
