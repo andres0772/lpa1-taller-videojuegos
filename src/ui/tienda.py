@@ -218,7 +218,7 @@ class MenuTienda:
         arcade.draw_text(
             "🛒 TIENDA",
             x,
-            y + alto // 2 - 30,
+            y + alto // 2 - 20,
             arcade.color.GOLD,
             24,
             anchor_x="center",
@@ -230,7 +230,7 @@ class MenuTienda:
         arcade.draw_text(
             f"Tu oro: {self._personaje.oro} 💰",
             x,
-            y + alto // 2 - 65,
+            y + alto // 2 - 50,
             arcade.color.YELLOW,
             16,
             anchor_x="center",
@@ -239,20 +239,20 @@ class MenuTienda:
 
         # Opciones (con mayor espaciado entre líneas)
         opciones = [
-            ("[1] Comprar equipamiento", 25, arcade.color.WHITE),
-            ("", -15, arcade.color.BLACK),  # Línea en blanco
-            ("[2] Vender items del inventario", -40, arcade.color.WHITE),
-            ("", -80, arcade.color.BLACK),  # Línea en blanco
-            ("[3] Equipar mejores items", -105, arcade.color.CYAN),
-            ("", -130, arcade.color.BLACK),  # Línea en blanco
-            ("[4] Salir / ESC", -155, arcade.color.GRAY),
+            ("[1] Comprar equipamiento", 0, arcade.color.WHITE),
+            ("", -25, arcade.color.BLACK),  # Línea en blanco
+            ("[2] Vender items del inventario", -45, arcade.color.WHITE),
+            ("", -65, arcade.color.BLACK),  # Línea en blanco
+            ("[3] Equipar mejores items", -85, arcade.color.CYAN),
+            ("", -105, arcade.color.BLACK),  # Línea en blanco
+            ("[4] Salir / ESC", -125, arcade.color.GRAY),
         ]
 
         for texto, desfase, color in opciones:
             arcade.draw_text(
                 texto,
                 x - 120,
-                y + alto // 2 - 100 + desfase,
+                y + alto // 2 - 75 + desfase,
                 color,
                 16,
                 anchor_x="left",
