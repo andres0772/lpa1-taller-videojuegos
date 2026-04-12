@@ -1,3 +1,5 @@
-"""Mundo del juego.
-Gestión de escenarios, mapas y grids del dungeon.
-"""
+"""Módulo de mundo/escenario del juego."""
+
+from .escenario import Escenario
+
+__all__ = ["Escenario"]
