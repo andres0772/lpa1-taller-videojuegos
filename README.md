@@ -26,6 +26,10 @@ El juego cuenta con las siguientes funcionalidades implementadas:
 - **Sistema de Tienda**: Compra y venta de equipamiento, auto-equipado automático.
 - **Sistema de Áreas**: Múltiples escenarios (Bosque Encantado, Castillo Oscuro, Campo de Batalla) con generación procedimental.
 - **Sistema de Dificultad Progresiva**: Los enemigos se vuelven más difíciles a medida que se avanza.
+- **Sistema de Proyectiles**: Disparos del jugador y enemigos con cooldowns.
+- **Sistema de Drops**: Los enemigos sueltan tesoros o trampas al morir.
+- **Mejoras de Proyectil**: En la tienda se pueden comprar mejoras de daño, velocidad y rebote.
+- **Gestores (SRP)**: Código refactorizado usando GestorProyectiles, GestorCombate, GestorItems.
 - **Interfaz de Usuario (HUD)**: Visualización de stats en tiempo real.
 - **Menú de Pausa**: Stats del personaje, equipamiento y inventario.
 - **Menú de Tienda**: Compra, venta y equipamiento.
@@ -35,11 +39,35 @@ El juego cuenta con las siguientes funcionalidades implementadas:
 | Tecla | Acción |
 |------|-------|
 | `Flechas` o `WASD` | Mover al personaje |
-| `Espacio` | Atacar / Recolectar item |
+| `Espacio` | Disparar proyectil |
 | `P` | Abrir menú de pausa |
 | `T` | Abrir tienda |
 | `1-9` | Seleccionar opción en menús |
 | `ESC` | Cerrar menús / Cancelar |
+
+### Mejoras en la Tienda
+
+El juego incluye un sistema de mejoras de proyectiles disponibles en la tienda:
+
+| Mejora | Descripción |
+|--------|-------------|
+| **Velocidad de disparo** | Reduce el cooldown de disparo del jugador |
+| **Daño de proyectil** | Aumenta el daño de los proyectiles |
+| **Velocidad de proyectil** | Proyectiles más rápidos |
+| **Rebote** | Los proyectiles rebotan en las paredes |
+
+### Drops de Enemigos
+
+Al derrotar un enemigo, este puede soltar diferentes objetos:
+
+| Tipo | Color | Efecto |
+|------|-------|--------|
+| **Tesoro** | Amarillo | Da oro al jugador |
+| **Trampa** | Rojo | Causa daño al jugador |
+| **Nada** | - | 30% de probabilidad |
+
+- **Probabilidades**: 50% tesoro, 20% trampa, 30% nada
+- **Duración**: 5 segundos antes de desaparecer
 
 ### Menú de Pausa
 
@@ -47,7 +75,7 @@ El juego cuenta con las siguientes funcionalidades implementadas:
 |------|-------|
 | `1` | Continuar juego |
 | `2` | Ver stats del personaje |
-| `3` | Configuración |
+| `3` | Configuración 'beta'|
 | `4` | Salir del juego |
 
 ### Tienda
@@ -56,8 +84,7 @@ El juego cuenta con las siguientes funcionalidades implementadas:
 |------|-------|
 | `1` | Comprar equipamiento |
 | `2` | Vender items del inventario |
-| `3` | Equipar mejores items |
-| `4` / `ESC` | Salir de la tienda |
+| `3` / 'ESC' | salir de la tienda |
 
 #### Requerimientos
 
@@ -139,6 +166,17 @@ El juego cuenta con las siguientes funcionalidades implementadas:
 - Tesoros: Deben tener diferentes objetos valiosos que se traduzcan en dinero para el personaje al venderlos.
 - Armamento/Defensa: El personaje debe poder comprar/vender para mejorar su ataque/defensa.
 
+## Conceptos de POO Aplicados
+
+El proyecto implementa los siguientes conceptos de Programación Orientada a Objetos:
+
+| Concepto | Implementación |
+|----------|----------------|
+| **Herencia** | Proyectil hereda de Entidad |
+| **Polimorfismo** | Métodos puede_recibir_daño(), puede_ser_destruido() |
+| **Encapsulamiento** | Métodos agregar_oro(), quitar_oro() |
+| **SRP (Principio de Responsabilidad Única)** | Gestores con responsabilidad única: GestorProyectiles, GestorCombate, GestorItems |
+
 ## Diseño
 
 ![Diagrama de Clases](./docs/diagramas.png)
@@ -168,36 +206,15 @@ Para una descripción detallada del diagrama de clases, ver [docs/diagramas.md](
     ```
     
 ## Ejecución
-
-Para ejecutar el juego, usa uno de los siguientes métodos:
-
-### Método 1: Python directo
-
 ```bash
+
 cd lpa1-taller-videojuegos
 python3 main.py
 ```
-
-### Método 2: Con el entorno virtual activado
-
-```bash
-cd lpa1-taller-videojuegos
-source venv/bin/activate
-python main.py
-```
-
-### Método 3: Ejecutable (si está configurado)
-
-```bash
-cd lpa1-taller-videojuegos
-./run.sh
-```
-
 ### Requisitos del sistema
 
-- Python 3.8+
-- Bibliotecas: arcade (ver requirements.txt)
-
+- Python 3
+- tener instalada las dependencias
 ---
 
 *Proyecto desarrollado para el Taller de Videojuegos - LPA1*
