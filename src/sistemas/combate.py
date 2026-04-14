@@ -14,16 +14,12 @@ class SistemaCombate:
     @staticmethod
     def _obtener_ataque_total(entidad: Entidad) -> int:
         """Obtiene el ataque total (incluyendo equipamiento si está disponible)."""
-        if hasattr(entidad, "ataque_total"):
-            return entidad.ataque_total
-        return entidad.ataque
+        return entidad.ataque_total
 
     @staticmethod
     def _obtener_defensa_total(entidad: Entidad) -> int:
         """Obtiene la defensa total (incluyendo equipamiento si está disponible)."""
-        if hasattr(entidad, "defensa_total"):
-            return entidad.defensa_total
-        return entidad.defensa
+        return entidad.defensa_total
 
     @staticmethod
     def calcular_daño(ataque: int, defensa: int) -> int:
@@ -33,17 +29,24 @@ class SistemaCombate:
 
     @staticmethod
     def atacar(atacante: Entidad, defensor: Entidad) -> ResultadoCombate:
+        # Verificar si pueden recibir daño antes de atacar
+        if not atacante.puede_recibir_daño() or not defensor.puede_recibir_daño():
+            return ResultadoCombate(
+                dano_infligido=0,
+                dano_recibido=0,
+                enemigo_derrotado=False,
+            )
         """Ejecuta un ataque y retorna el resultado."""
         # Usar stats totales si están disponibles (para Personaje con equipamiento)
-        ataque_atacante = SistemaCombate._obtener_ataque_total(atacante)
-        defensa_defensor = SistemaCombate._obtener_defensa_total(defensor)
+        ataque_atacante = atacante.ataque_total
+        defensa_defensor = defensor.defensa_total
 
         dano = SistemaCombate.calcular_daño(ataque_atacante, defensa_defensor)
         defensor.recibir_daño(dano)
 
         # Contraataca si sigue vivo
         dano_recibido = 0
-        if defensor.esta_vivo():
+        if defensor.puede_recibir_daño():
             ataque_defensor = SistemaCombate._obtener_ataque_total(defensor)
             defensa_atacante = SistemaCombate._obtener_defensa_total(atacante)
             dano_recibido = SistemaCombate.calcular_daño(

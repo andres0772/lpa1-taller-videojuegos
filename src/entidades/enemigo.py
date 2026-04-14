@@ -47,6 +47,14 @@ class Enemigo(Entidad):
         """Retorna True si este enemigo es un jefe."""
         return self._es_jefe
 
+    def puede_recibir_daño(self) -> bool:
+        """Retorna True si puede recibir daño (solo si está vivo)."""
+        return self.esta_vivo()
+
+    def puede_ser_destruido(self) -> bool:
+        """Retorna True si debe ser eliminado (solo si HP <= 0)."""
+        return self.hp_actual <= 0
+
     def esta_vivo(self) -> bool:
         return self._hp_actual > 0
 

@@ -39,6 +39,16 @@ class Personaje(Entidad):
     def oro(self) -> int:
         return self._oro
 
+    def agregar_oro(self, cantidad: int) -> None:
+        """Método público para modificar _oro (ENCAPSULAMIENTO - no acceso directo)."""
+        if cantidad > 0:
+            self._oro += cantidad
+
+    def quitar_oro(self, cantidad: int) -> None:
+        """Método público para modificar _oro (ENCAPSULAMIENTO - no acceso directo)."""
+        if cantidad > 0 and self._oro >= cantidad:
+            self._oro -= cantidad
+
     @property
     def inventario(self) -> list[Item]:
         return self._inventario
@@ -50,6 +60,14 @@ class Personaje(Entidad):
     @property
     def armadura_equipada(self) -> Optional[Equipamiento]:
         return self._armadura_equipada
+
+    def puede_recibir_daño(self) -> bool:
+        """Retorna True si puede recibir daño (solo si está vivo)."""
+        return self.esta_vivo()
+
+    def puede_ser_destruido(self) -> bool:
+        """Retorna True si debe ser eliminado (solo si HP <= 0)."""
+        return self.hp_actual <= 0
 
     def esta_vivo(self) -> bool:
         return self._hp_actual > 0

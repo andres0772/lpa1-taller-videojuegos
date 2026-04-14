@@ -103,7 +103,7 @@ class SistemaTienda:
             )
 
         # Descontar oro y crear copia del equipamiento
-        personaje._oro -= item_tienda.precio
+        personaje.quitar_oro(item_tienda.precio)
 
         # Crear una copia del equipamiento para el inventario
         equip = Equipamiento(
@@ -150,6 +150,6 @@ class SistemaTienda:
         personaje.inventario.pop(indice)
 
         # Agregar oro
-        personaje._oro += oro_venta
+        personaje.agregar_oro(oro_venta)
 
         return True, f"¡Vendiste {item.nombre} por {oro_venta} oro!"

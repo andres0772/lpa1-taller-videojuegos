@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
+    import arcade
     from ..entidades.personaje import Personaje
 
 
@@ -11,6 +12,12 @@ class Item(ABC):
     def __init__(self, nombre: str, descripcion: str = ""):
         self._nombre = nombre
         self._descripcion = descripcion
+        # Sprite opcional asociado a este item (definido por la clase Juego)
+        self.sprite: Optional[arcade.Sprite] = None
+
+    def tiene_sprite(self) -> bool:
+        """Retorna True si este item tiene un sprite asociado."""
+        return self.sprite is not None
 
     @property
     def nombre(self) -> str:

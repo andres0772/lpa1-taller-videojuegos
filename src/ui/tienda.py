@@ -142,13 +142,13 @@ class MenuTienda:
         equips_arma = []
         equips_armadura = []
 
-        # Separar por tipo
+        # Separar por tipo usando getattr (más pythonico que hasattr)
         for item in self._personaje.inventario:
-            if hasattr(item, "tipo"):
-                if item.tipo == "arma":
-                    equips_arma.append(item)
-                elif item.tipo == "armadura":
-                    equips_armadura.append(item)
+            tipo = getattr(item, "tipo", None)
+            if tipo == "arma":
+                equips_arma.append(item)
+            elif tipo == "armadura":
+                equips_armadura.append(item)
 
         # Equipar el mejor de cada tipo
         mejor_arma = None

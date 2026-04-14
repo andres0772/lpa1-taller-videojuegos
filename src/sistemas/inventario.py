@@ -24,7 +24,7 @@ class SistemaInventario:
         if 0 <= indice < len(inventario):
             item = inventario.pop(indice)
             oro_obtenido = item.vender()
-            personaje._oro += oro_obtenido
+            personaje.agregar_oro(oro_obtenido)
             return oro_obtenido
         return None
 
@@ -32,7 +32,7 @@ class SistemaInventario:
     def comprar_item(inventario: list[Item], item: Item, personaje) -> bool:
         """Compra un item si el jugador tiene suficiente oro. Retorna True si se compró."""
         if item.precio <= personaje.oro:
-            personaje._oro -= item.precio
+            personaje.quitar_oro(item.precio)
             inventario.append(item)
             return True
         return False

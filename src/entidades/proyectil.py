@@ -1,8 +1,12 @@
 from typing import Literal
+from .entidad import Entidad
 
 
-class Proyectil:
-    """Clase para los proyectiles disparados en el juego."""
+class Proyectil(Entidad):
+    """Hereda de Entidad. Ejemplo de HERENCIA - reutiliza código de la clase base."""
+
+    # HP fijo para proyectiles (se destruyen con cualquier impacto)
+    HP_PROYECTIL = 1
 
     def __init__(
         self,
@@ -14,15 +18,23 @@ class Proyectil:
         velocidad: float = 300,
         es_del_jugador: bool = True,
     ):
+        # Inicializar como Entidad con HP=1 (los proyectiles se destruyen con 1 golpe)
+        super().__init__(hp_max=self.HP_PROYECTIL, ataque=dano, defensa=0)
+
         self.center_x = x
         self.center_y = y
         self.direccion_x = direccion_x
         self.direccion_y = direccion_y
-        self.dano = dano
+        self._dano = dano  # Daño que inflige al impactar
         self.velocidad = velocidad
         self.es_del_jugador = es_del_jugador
         self.sprite = None
         self.activo = True
+
+    @property
+    def dano(self) -> int:
+        """Daño que inflige el proyectil al impactar."""
+        return self._dano
 
     @property
     def posicion(self) -> tuple[float, float]:
@@ -45,6 +57,19 @@ class Proyectil:
         """Retorna el tamaño del proyectil."""
         return 10
 
+    # Implementación de métodos abstractos de Entidad (polimorfismo)
+    def esta_vivo(self) -> bool:
+        """Un proyectil está 'vivo' mientras esté activo. Implementa método de Entidad (polimorfismo)."""
+        return self.activo and self._hp_actual > 0
+
+    def puede_recibir_daño(self) -> bool:
+        """Implementa método de Entidad (polimorfismo)."""
+        return self.activo
+
+    def puede_ser_destruido(self) -> bool:
+        """Implementa método de Entidad (polimorfismo)."""
+        return not self.activo or self._hp_actual <= 0
+
     def esta_fuera_de_pantalla(self, ancho: int, alto: int) -> bool:
         """Verifica si el proyectil salió de la pantalla."""
         return (
@@ -65,4 +90,4 @@ class Proyectil:
 
     def __repr__(self) -> str:
         tipo = "jugador" if self.es_del_jugador else "enemigo"
-        return f"Proyectil({tipo}, dano={self.dano}, pos={self.center_x:.0f},{self.center_y:.0f})"
+        return f"Proyectil({tipo}, dano={self._dano}, pos={self.center_x:.0f},{self.center_y:.0f})"
