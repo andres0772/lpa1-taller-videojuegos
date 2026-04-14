@@ -55,12 +55,7 @@ class MenuTienda:
             if not self._personaje.inventario:
                 self._mensaje = "Inventario vacío"
             return True
-        elif key in (arcade.key.NUM_3, arcade.key.KEY_3):
-            # Equipar items del inventario
-            self._mensaje = self._equipar_items()
-            self._mostrar_mensaje_timer = 2.0
-            return True
-        elif key in (arcade.key.ESCAPE, arcade.key.NUM_4, arcade.key.KEY_4):
+        elif key in (arcade.key.ESCAPE, arcade.key.NUM_3, arcade.key.KEY_3):
             self.cerrar()
             return True
         return False
@@ -137,53 +132,6 @@ class MenuTienda:
             return True
         return False
 
-    def _equipar_items(self) -> str:
-        """Equipa items automáticamente."""
-        equips_arma = []
-        equips_armadura = []
-
-        # Separar por tipo usando getattr (más pythonico que hasattr)
-        for item in self._personaje.inventario:
-            tipo = getattr(item, "tipo", None)
-            if tipo == "arma":
-                equips_arma.append(item)
-            elif tipo == "armadura":
-                equips_armadura.append(item)
-
-        # Equipar el mejor de cada tipo
-        mejor_arma = None
-        mejor_bonus_arma = -1
-        for equip in equips_arma:
-            if equip.bonus > mejor_bonus_arma:
-                mejor_bonus_arma = equip.bonus
-                mejor_arma = equip
-
-        mejor_armadura = None
-        mejor_bonus_armadura = -1
-        for equip in equips_armadura:
-            if equip.bonus > mejor_bonus_armadura:
-                mejor_bonus_armadura = equip.bonus
-                mejor_armadura = equip
-
-        # Equipar
-        if mejor_arma:
-            self._personaje.equipar(mejor_arma)
-        if mejor_armadura:
-            self._personaje.equipar(mejor_armadura)
-
-        # Resumen
-        resumen = []
-        if mejor_arma:
-            resumen.append(f"Espada: {mejor_arma.nombre} (+{mejor_arma.bonus})")
-        if mejor_armadura:
-            resumen.append(
-                f"Armadura: {mejor_armadura.nombre} (+{mejor_armadura.bonus})"
-            )
-
-        if not resumen:
-            return "No hay equipamiento en inventario"
-        return "Equipado: " + ", ".join(resumen)
-
     def dibujar(self) -> None:
         """Dibuja el menú de la tienda si está abierto."""
         if self._modo_actual == "menu":
@@ -246,7 +194,7 @@ class MenuTienda:
         y_inicio = y + alto // 2 - 85
 
         arcade.draw_text(
-            "[1] Comprar equipamiento",
+            "[1] Comprar mejoras",
             x - 130,
             y_inicio,
             arcade.color.WHITE,
@@ -264,29 +212,29 @@ class MenuTienda:
         )
 
         arcade.draw_text(
-            "[3] Equipar mejores items",
+            "[3] Salir / ESC",
             x - 130,
             y_inicio - 70,
-            arcade.color.CYAN,
-            16,
-            anchor_x="left",
-        )
-
-        arcade.draw_text(
-            "[4] Salir / ESC",
-            x - 130,
-            y_inicio - 105,
             arcade.color.GRAY,
             16,
             anchor_x="left",
         )
 
-        # Stats actuales - más pequeños y a la izquierda
+        # Stats actuales - mostrar mejoras de proyectiles
         arcade.draw_text(
-            f"ATAQUE: {self._personaje.ataque_total} | DEFENSA: {self._personaje.defensa_total}",
+            f"COOLDOWN: {self._personaje.cooldown_disparo:.2f}s | DAÑO: x{self._personaje.dano_proyectil:.2f}",
             x - 130,
             y - alto // 2 + 25,
-            arcade.color.GREEN,
+            arcade.color.CYAN,
+            12,
+            anchor_x="left",
+            anchor_y="bottom",
+        )
+        arcade.draw_text(
+            f"VELOCIDAD: x{self._personaje.velocidad_proyectil:.2f} | REBOTES: {self._personaje.rebotes}",
+            x - 130,
+            y - alto // 2 + 40,
+            arcade.color.CYAN,
             12,
             anchor_x="left",
             anchor_y="bottom",
@@ -331,7 +279,7 @@ class MenuTienda:
 
         # Título
         arcade.draw_text(
-            "💰 COMPRAR EQUIPAMIENTO",
+            "💥 MEJORAS DE PROYECTILES",
             x,
             y + alto // 2 - 30,
             arcade.color.GOLD,
@@ -354,17 +302,23 @@ class MenuTienda:
 
         # Items en venta
         items = SistemaTienda.getter_items_tienda()
+        iconos = {
+            "velocidad_disparo": "⚡",
+            "dano_proyectil": "💥",
+            "velocidad_proyectil": "🎯",
+            "rebote": "↩️",
+        }
         for i, item in enumerate(items):
             # Color según stock y precio
             color = arcade.color.WHITE
-            if item.stock <= 0:
+            if item.stock == 0:
                 color = arcade.color.GRAY
             elif self._personaje.oro < item.precio:
                 color = arcade.color.RED
 
-            tipo_icon = "⚔️" if item.tipo == "arma" else "🛡️"
-            nombre = f"[{i + 1}] {tipo_icon} {item.nombre}"
-            detalle = f"+{item.bonus} {item.tipo} - {item.precio}g"
+            icono = iconos.get(item.tipo, "•")
+            nombre = f"[{i + 1}] {icono} {item.nombre}"
+            detalle = f"{item.precio}g"
 
             arcade.draw_text(
                 nombre, x - 150, y + alto // 2 - 95 - i * 30, color, 14, anchor_x="left"

@@ -1,79 +1,80 @@
 """Sistema de tienda del juego."""
 
-from typing import Optional
-from ..items.item import Equipamiento
+from typing import Optional, Union
+from ..items.item import Equipamiento, MejoraProyectil
 
 
 class ItemTienda:
     """Representa un item disponible para comprar en la tienda."""
 
-    def __init__(self, equipamiento: Equipamiento, stock: int = 999):
-        self.equipamiento = equipamiento
+    def __init__(
+        self,
+        item: Union[Equipamiento, MejoraProyectil],
+        stock: int = 999,
+    ):
+        self.item = item
         self.stock = stock  # Cantidad disponible (-1 = ilimitado)
 
     @property
     def nombre(self) -> str:
-        return self.equipamiento.nombre
+        return self.item.nombre
 
     @property
     def precio(self) -> int:
-        return self.equipamiento.precio
+        return self.item.precio
 
     @property
     def tipo(self) -> str:
-        return self.equipamiento.tipo
+        return self.item.tipo
 
     @property
     def bonus(self) -> int:
-        return self.equipamiento.bonus
+        if isinstance(self.item, Equipamiento):
+            return self.item.bonus
+        return 0
 
 
 class SistemaTienda:
     """Sistema para gestionar la tienda del juego."""
 
-    # Items disponibles en la tienda
+    # Items disponibles en la tienda (MEJORAS DE PROYECTILES)
     ITEMS_TIENDA = [
-        # Armas básicas
+        # Mejoras de proyectiles
         ItemTienda(
-            Equipamiento(
-                "Espada Básica",
-                "arma",
-                5,
+            MejoraProyectil(
+                "Velocidad de disparo",
+                MejoraProyectil.TIPO_VELOCIDAD_DISPARO,
                 precio=50,
-                descripcion="Espada simple de entrenamiento",
+                descripcion="Reduce el cooldown de disparo un 15%",
             ),
-            stock=5,
+            stock=-1,  # Ilimitado
         ),
         ItemTienda(
-            Equipamiento(
-                "Escudo Básico",
-                "armadura",
-                3,
-                precio=30,
-                descripcion="Escudo de madera",
+            MejoraProyectil(
+                "Daño de proyectil",
+                MejoraProyectil.TIPO_DANO_PROYECTIL,
+                precio=75,
+                descripcion="Aumenta el daño de proyectil un 25%",
             ),
-            stock=5,
-        ),
-        # Armas avanzadas
-        ItemTienda(
-            Equipamiento(
-                "Espada Avanzada",
-                "arma",
-                10,
-                precio=150,
-                descripcion="Espada de acero templado",
-            ),
-            stock=2,
+            stock=-1,
         ),
         ItemTienda(
-            Equipamiento(
-                "Armadura Mejorada",
-                "armadura",
-                8,
+            MejoraProyectil(
+                "Velocidad de proyectil",
+                MejoraProyectil.TIPO_VELOCIDAD_PROYECTIL,
+                precio=60,
+                descripcion="Aumenta la velocidad del proyectil un 20%",
+            ),
+            stock=-1,
+        ),
+        ItemTienda(
+            MejoraProyectil(
+                "Rebote",
+                MejoraProyectil.TIPO_REBOTE,
                 precio=100,
-                descripcion="Armadura de cuero endurecido",
+                descripcion="Agrega 1 rebote adicional",
             ),
-            stock=2,
+            stock=-1,
         ),
     ]
 
@@ -93,7 +94,7 @@ class SistemaTienda:
 
         item_tienda = cls.ITEMS_TIENDA[indice]
 
-        if item_tienda.stock <= 0:
+        if item_tienda.stock == 0:
             return False, "No hay stock disponible"
 
         if personaje.oro < item_tienda.precio:
@@ -102,20 +103,11 @@ class SistemaTienda:
                 f"Oro insuficiente (tienes {personaje.oro}, necesitas {item_tienda.precio})",
             )
 
-        # Descontar oro y crear copia del equipamiento
+        # Descontar oro
         personaje.quitar_oro(item_tienda.precio)
 
-        # Crear una copia del equipamiento para el inventario
-        equip = Equipamiento(
-            item_tienda.nombre,
-            item_tienda.tipo,
-            item_tienda.bonus,
-            precio=item_tienda.precio,
-            descripcion=item_tienda.equipamiento.descripcion,
-        )
-
-        # Agregar al inventario
-        personaje._inventario.append(equip)
+        # Usar la mejora directamente (aplica el efecto)
+        item_tienda.item.usar(personaje)
 
         # Descontar stock (si hay límite)
         if item_tienda.stock > 0:

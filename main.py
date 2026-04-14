@@ -14,7 +14,7 @@ import random
 from src.entidades import Personaje, Enemigo, Proyectil
 from src.mundo import Escenario
 from src.ui import HUD, MenuTienda, MenuPausa
-from src.items import Tesoro, TrampaExplosiva
+from src.items import Tesoro, TrampaExplosiva, ItemDrop
 from src.sistemas import SistemaCombate, GestorProyectiles, GestorCombate, GestorItems
 
 ANCHO_VENTANA = 1080
@@ -106,6 +106,10 @@ class Juego(arcade.Window):
         # Nivel del juego (progresivo)
         self._nivel_juego = 1
 
+        # Drops de enemigos derrotados
+        self._drops_enemigos: list[ItemDrop] = []
+        self.lista_sprites_drops = arcade.SpriteList()
+
         # Agregar sprite del personaje al gestor de proyectiles
         self.personaje.sprite = self.sprite_jugador
 
@@ -173,6 +177,10 @@ class Juego(arcade.Window):
 
             # Limpiar proyectiles usando el gestor
             self.gestor_proyectiles.limpiar()
+
+            # Limpiar drops de enemigos
+            self.lista_sprites_drops.clear()
+            self._drops_enemigos.clear()
 
             # Reiniciar posición del jugador en el centro
             self.sprite_jugador.center_x = ANCHO_VENTANA // 2
@@ -280,6 +288,7 @@ class Juego(arcade.Window):
             y=self.sprite_jugador.center_y,
             direccion_x=dx,
             direccion_y=dy,
+            personaje=self.personaje,
         )
 
         if proyectil:
@@ -294,6 +303,7 @@ class Juego(arcade.Window):
         if len(self._areas_visitadas) >= 3:
             self._juego_terminado = True
             self._mensaje_victoria = "¡Has explorado todo! ¡VICTORIA!"
+            self.personaje.reiniciar_upgrades()
             return
 
         # R7.3: Victoria por Puntaje (experiencia + oro)
@@ -301,6 +311,7 @@ class Juego(arcade.Window):
         if puntaje >= self.PUNTAJE_VICTORIA:
             self._juego_terminado = True
             self._mensaje_victoria = "¡Has alcanzado el puntaje máximo! ¡VICTORIA!"
+            self.personaje.reiniciar_upgrades()
             return
 
     def on_update(self, delta_time):
@@ -410,15 +421,23 @@ class Juego(arcade.Window):
                     f"¡Enemigo derrotado! +{enemigo.experiencia_al_derrotar} XP, +{enemigo.oro_al_derrotar} oro"
                 )
 
+                # Crear drop desde enemigo derrotado por proyectil
+                self._crear_drop_desde_enemigo(enemigo)
+
                 if enemigo.es_jefe:
                     self._juego_terminado = True
                     self._mensaje_victoria = "¡Has derrotado al JEFE! ¡VICTORIA!"
+                    self.personaje.reiniciar_upgrades()
+                    self.gestor_proyectiles.eliminar_proyectil(proyectil)
 
+                # Remove sprite for ALL enemies (not just bosses)
                 if enemigo.sprite in self.lista_sprites:
                     self.lista_sprites.remove(enemigo.sprite)
+
                 self.gestor_proyectiles.eliminar_enemigo(enemigo)
                 self.escenario.enemigos.remove(enemigo)
 
+            # Eliminar proyectil del sprite list después de impactar enemigo
             self.gestor_proyectiles.eliminar_proyectil(proyectil)
 
         # Procesar impactos al jugador
@@ -439,20 +458,22 @@ class Juego(arcade.Window):
             self.sprite_jugador,
             self.escenario.enemigos,
             self.lista_sprites,
-            on_enemigo_derrotado=lambda e: print(
-                f"¡Enemigo derrotado! +{e.experiencia_al_derrotar} XP"
+            on_enemigo_derrotado=lambda e: (
+                print(f"¡Enemigo derrotado! +{e.experiencia_al_derrotar} XP"),
+                self._crear_drop_desde_enemigo(e),
             ),
             on_jefe_derrotado=lambda: (
                 setattr(self, "_juego_terminado", True)
                 or setattr(
                     self, "_mensaje_victoria", "¡Has derrotado al JEFE! ¡VICTORIA!"
                 )
+                or self.personaje.reiniciar_upgrades()
             ),
         )
         if resultado:
             print(f"¡Combate! Daño: {resultado.dano_infligido} ")
 
-        # Verificar colisiones con items
+        # Verificar colisiones con items (static items del mapa)
         self.gestor_items.verificar_colisiones(
             self.personaje,
             self.sprite_jugador,
@@ -461,6 +482,12 @@ class Juego(arcade.Window):
             on_tesoro_recogido=lambda oro: print(f"¡Tesoro encontrado! +{oro} oro"),
             on_trampa_activada=lambda dano: print(f"¡TRAMPA! Daño recibido: {dano}"),
         )
+
+        # Verificar y actualizar drops de enemigos
+        self._actualizar_drops_enemigos(delta_time)
+
+        # Verificar colisiones con drops de enemigos
+        self._verificar_colisiones_drops()
 
         # Verificar si TODOS los enemigos fueron derrotados → cambio automático de nivel
         if not self.escenario.enemigos and not self._juego_terminado:
@@ -485,12 +512,83 @@ class Juego(arcade.Window):
         # Verificar condiciones de victoria
         self._verificar_victoria()
 
-        # Verificar si el personaje murió
+        # Verificar si el personaje murió (debe ser el ÚLTIMO check en on_update)
         if not self.personaje.esta_vivo():
             print("💀 GAME OVER 💀")
             print("El personaje ha muerto. Cerrando el juego...")
+            self.personaje.reiniciar_upgrades()
             arcade.close_window()
             return
+
+    def _actualizar_drops_enemigos(self, delta_time: float) -> None:
+        """Actualiza el tiempo de existencia de los drops y elimina los expirados.
+
+        Args:
+            delta_time: Tiempo transcurrido desde el último update
+        """
+        drops_a_eliminar = []
+
+        for drop in self._drops_enemigos:
+            drop.actualizar_tiempo(delta_time)
+
+            if drop.expiro:
+                # Eliminar sprite del SpriteList
+                if drop.tiene_sprite() and drop.sprite in self.lista_sprites_drops:
+                    self.lista_sprites_drops.remove(drop.sprite)
+                # Eliminar sprite si existe
+                if drop.sprite is not None:
+                    drop.sprite.kill()
+                drops_a_eliminar.append(drop)
+
+        # Eliminar drops expirados
+        for drop in drops_a_eliminar:
+            self._drops_enemigos.remove(drop)
+
+    def _verificar_colisiones_drops(self) -> None:
+        """Verifica colisiones entre el jugador y los drops de enemigos."""
+        drops_a_recoger = []
+
+        for drop in self._drops_enemigos:
+            if not drop.tiene_sprite():
+                continue
+
+            if arcade.check_for_collision(self.sprite_jugador, drop.sprite):
+                tipo, valor = drop.recoger(self.personaje)
+
+                if tipo == "tesoro":
+                    print(f"¡Drop de enemigo! +{valor} oro")
+                elif tipo == "trampa":
+                    print(f"¡TRAMPA del drop! Daño recibido: {valor}")
+
+                # Eliminar sprite del SpriteList
+                if drop.sprite in self.lista_sprites_drops:
+                    self.lista_sprites_drops.remove(drop.sprite)
+                # Eliminar sprite
+                drop.sprite.kill()
+                drops_a_recoger.append(drop)
+
+        # Eliminar drops recogidos
+        for drop in drops_a_recoger:
+            if drop in self._drops_enemigos:
+                self._drops_enemigos.remove(drop)
+
+    def _crear_drop_desde_enemigo(self, enemigo) -> None:
+        """Crea un drop en la posición del enemigo derrotado.
+
+        Args:
+            enemigo: El enemigo derrotado
+        """
+        drop = ItemDrop.crear_desde_enemigo(enemigo)
+
+        if drop is not None:
+            # Crear sprite para el drop
+            drop.crear_sprite()
+            # Agregar sprite al SpriteList para poder Dibujarlo
+            if drop.tiene_sprite():
+                self.lista_sprites_drops.append(drop.sprite)
+            # Agregar a la lista de drops
+            self._drops_enemigos.append(drop)
+            print(f"¡Drop generado! Tipo: {drop.tipo}, Valor: {drop.valor}")
 
     def on_draw(self):
         """Dibuja el juego."""
@@ -504,6 +602,9 @@ class Juego(arcade.Window):
 
         # Dibujar proyectiles
         self.gestor_proyectiles.dibujar()
+
+        # Dibujar drops de enemigos usando SpriteList
+        self.lista_sprites_drops.draw()
 
         # Dibujar HUD
         self.hud.dibujar()

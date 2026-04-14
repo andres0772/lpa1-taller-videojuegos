@@ -139,3 +139,65 @@ class Tesoro(Item):
     def vender(self) -> int:
         """Vende el tesoro. Retorna su valor."""
         return self._valor
+
+
+class MejoraProyectil(Item):
+    """Clase para mejoras de proyectiles (no es equipamiento equipable)."""
+
+    # Tipos de mejora
+    TIPO_VELOCIDAD_DISPARO = "velocidad_disparo"
+    TIPO_DANO_PROYECTIL = "dano_proyectil"
+    TIPO_VELOCIDAD_PROYECTIL = "velocidad_proyectil"
+    TIPO_REBOTE = "rebote"
+
+    def __init__(
+        self,
+        nombre: str,
+        tipo_mejora: str,
+        precio: int = 0,
+        descripcion: str = "",
+    ):
+        super().__init__(nombre, descripcion)
+        self._tipo_mejora = tipo_mejora
+        self._precio = precio
+
+    @property
+    def tipo_mejora(self) -> str:
+        return self._tipo_mejora
+
+    @property
+    def tipo(self) -> str:
+        """Para compatibilidad con ItemTienda."""
+        return self._tipo_mejora
+
+    @property
+    def precio(self) -> int:
+        return self._precio
+
+    @property
+    def bonus(self) -> int:
+        """Para compatibilidad con ItemTienda (retorna 0)."""
+        return 0
+
+    def usar(self, personaje: "Personaje") -> bool:
+        """Aplica la mejora al personaje."""
+        if not personaje.esta_vivo():
+            return False
+
+        if self._tipo_mejora == self.TIPO_VELOCIDAD_DISPARO:
+            personaje.mejorar_velocidad_disparo()
+            return True
+        elif self._tipo_mejora == self.TIPO_DANO_PROYECTIL:
+            personaje.mejorar_dano_proyectil()
+            return True
+        elif self._tipo_mejora == self.TIPO_VELOCIDAD_PROYECTIL:
+            personaje.mejorar_velocidad_proyectil()
+            return True
+        elif self._tipo_mejora == self.TIPO_REBOTE:
+            personaje.mejorar_rebote()
+            return True
+        return False
+
+    def vender(self) -> int:
+        """Vende la mejora. Retorna la mitad del precio."""
+        return self._precio // 2

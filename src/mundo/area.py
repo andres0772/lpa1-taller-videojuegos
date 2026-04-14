@@ -115,7 +115,7 @@ class Area:
         for i in range(cantidad):
             tipo = random.choice(tipos)
             nombre = random.choice(nombres.get(tipo, ["Criatura"]))
-            hp = int(random.randint(20, 50) * multiplicador_hp)
+            hp = int(random.randint(30, 70) * multiplicador_hp)
             ataque = int(random.randint(5, 15) * multiplicador_ataque)
             defensa = int(random.randint(0, 5) * multiplicador_hp)
             xp = int(random.randint(10, 30) * multiplicador_hp)

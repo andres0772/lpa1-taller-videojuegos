@@ -142,3 +142,26 @@ class TestProyectil:
         assert "Proyectil(enemigo, dano=15, pos=10,20)" in str(proyectil), (
             "La representación del proyectil debe incluir tipo, daño y posición"
         )
+
+    def test_rebote_en_pared(self):
+        """Verifica que los rebotes funcionan correctamente."""
+        # Proyectil con rebotes
+        proyectil = Proyectil(0, 100, 1, 0, 10, rebotes=2)
+        assert proyectil.rebotes_actuales == 2, "Debe iniciar con 2 rebotes"
+
+        # Rebotar en pared izquierda
+        reboto = proyectil.rebotar_en_pared(800, 600)
+        assert reboto, "Debe rebotar en la pared izquierda"
+        assert proyectil.direccion_x > 0, "La dirección X debe invertirse"
+        assert proyectil.rebotes_actuales == 1, "Debe reducir los rebotes restantes"
+
+        # Rebotar en pared derecha
+        proyectil.center_x = 800  # Mover a la derecha
+        reboto = proyectil.rebotar_en_pared(800, 600)
+        assert reboto, "Debe rebotar en la pared derecha"
+        assert proyectil.direccion_x < 0, "La dirección X debe invertirse"
+
+        # Sin rebotes restantes - no debe rebotar
+        proyectil._rebotes_actuales = 0
+        reboto = proyectil.rebotar_en_pared(800, 600)
+        assert not reboto, "No debe rebotar sin rebotes restantes"

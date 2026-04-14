@@ -28,7 +28,7 @@ class GestorProyectiles:
     # Constantes de configuración
     VELOCIDAD_PROYECTIL_JUGADOR = 400  # pixels por segundo
     VELOCIDAD_PROYECTIL_ENEMIGO = 280  # 70% de la velocidad del jugador
-    DANO_PROYECTIL_JUGADOR = 15
+    DANO_PROYECTIL_JUGADOR = 10  # Reducido de 15 para permitir múltiples impactos
     DANO_PROYECTIL_ENEMIGO = 8
     COOLDOWN_DISPARO_JUGADOR = 0.3  # segundos
     COOLDOWN_MIN_ENEMIGO = 2.0  # segundos
@@ -60,6 +60,10 @@ class GestorProyectiles:
         """Retorna True si el jugador puede disparar (cooldown expirado)."""
         return self._cooldown_jugador <= 0
 
+    def establecer_cooldown_jugador(self, cooldown: float) -> None:
+        """Establece el cooldown del jugador (usado por el sistema de mejoras)."""
+        self._cooldown_jugador = cooldown
+
     def actualizar_cooldowns(self, delta_time: float) -> None:
         """Actualiza todos los cooldowns."""
         self._cooldown_jugador = max(0, self._cooldown_jugador - delta_time)
@@ -70,6 +74,7 @@ class GestorProyectiles:
         y: float,
         direccion_x: float,
         direccion_y: float,
+        personaje,
     ) -> Proyectil | None:
         """
         Crea un proyectil disparado por el jugador.
@@ -77,12 +82,13 @@ class GestorProyectiles:
         Args:
             x, y: Posición inicial
             direccion_x, direccion_y: Dirección normalizada del disparo
+            personaje: Instancia del personaje para usar sus atributos de mejora
 
         Returns:
             El proyectil creado, o None si está en cooldown
         """
         if not self.puede_disparar_jugador:
-            return None
+            return None  # type: ignore
 
         # Normalizar dirección
         magnitud = (direccion_x**2 + direccion_y**2) ** 0.5
@@ -92,14 +98,19 @@ class GestorProyectiles:
         else:
             direccion_x, direccion_y = 0, -1  # Por defecto hacia abajo
 
+        # Aplicar multiplicadores del personaje
+        dano = int(self.DANO_PROYECTIL_JUGADOR * personaje.dano_proyectil)
+        velocidad = self.VELOCIDAD_PROYECTIL_JUGADOR * personaje.velocidad_proyectil
+
         proyectil = Proyectil(
             x=x,
             y=y,
             direccion_x=direccion_x,
             direccion_y=direccion_y,
-            dano=self.DANO_PROYECTIL_JUGADOR,
-            velocidad=self.VELOCIDAD_PROYECTIL_JUGADOR,
+            dano=dano,
+            velocidad=velocidad,
             es_del_jugador=True,
+            rebotes=personaje.rebotes,
         )
 
         # Crear sprite
@@ -108,8 +119,8 @@ class GestorProyectiles:
         self.lista_sprites.append(sprite)
         self.proyectiles.append(proyectil)
 
-        # Activar cooldown
-        self._cooldown_jugador = self.COOLDOWN_DISPARO_JUGADOR
+        # Activar cooldown usando el atributo del personaje
+        self._cooldown_jugador = personaje.cooldown_disparo
 
         return proyectil
 
@@ -196,7 +207,12 @@ class GestorProyectiles:
             if not proyectil.activo:
                 continue
 
+            # Actualizar posición
             proyectil.actualizar(delta_time)
+
+            # Manejar rebotes si el proyectil tiene rebotes restantes
+            if proyectil.rebotes_actuales > 0:
+                proyectil.rebotar_en_pared(self._ancho, self._alto)
 
             # Sincronizar sprite
             if proyectil.sprite:
@@ -232,6 +248,9 @@ class GestorProyectiles:
                 for enemigo in enemigos:
                     if enemigo.esta_vivo() and enemigo.sprite:
                         if arcade.check_for_collision(proyectil.sprite, enemigo.sprite):
+                            # Marcar proyectil como inactivo INMEDIATAMENTE para evitar
+                            # múltiples impactos en frames consecutivos
+                            proyectil.activo = False
                             impactos_enemigos.append((proyectil, enemigo))
                             break
             else:
@@ -239,6 +258,9 @@ class GestorProyectiles:
                 if personaje.sprite and arcade.check_for_collision(
                     proyectil.sprite, personaje.sprite
                 ):
+                    # Marcar proyectil como inactivo INMEDIATAMENTE para evitar
+                    # múltiples impactos en frames consecutivos
+                    proyectil.activo = False
                     impactos_jugador.append((proyectil, personaje))
 
         return impactos_enemigos, impactos_jugador

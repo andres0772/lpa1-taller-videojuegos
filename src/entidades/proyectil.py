@@ -17,6 +17,7 @@ class Proyectil(Entidad):
         dano: int,
         velocidad: float = 300,
         es_del_jugador: bool = True,
+        rebotes: int = 0,
     ):
         # Inicializar como Entidad con HP=1 (los proyectiles se destruyen con 1 golpe)
         super().__init__(hp_max=self.HP_PROYECTIL, ataque=dano, defensa=0)
@@ -31,10 +32,19 @@ class Proyectil(Entidad):
         self.sprite = None
         self.activo = True
 
+        # Rebotes
+        self._rebotes_maximos = rebotes
+        self._rebotes_actuales = rebotes
+
     @property
     def dano(self) -> int:
         """Daño que inflige el proyectil al impactar."""
         return self._dano
+
+    @property
+    def rebotes_actuales(self) -> int:
+        """Rebotes restantes antes de destruirse."""
+        return self._rebotes_actuales
 
     @property
     def posicion(self) -> tuple[float, float]:
@@ -87,6 +97,46 @@ class Proyectil(Entidad):
         desplazamiento = self.velocidad * delta_time
         self.center_x += self.direccion_x * desplazamiento
         self.center_y += self.direccion_y * desplazamiento
+
+    def rebotar_en_pared(
+        self,
+        ancho: int,
+        alto: int,
+    ) -> bool:
+        """Rebota en las paredes de la pantalla.
+
+        Returns:
+            True si rebotó, False si no había pared o se agotaron los rebotes.
+        """
+        if self._rebotes_actuales <= 0:
+            return False
+
+        reboto = False
+
+        # Rebotar en paredes laterales
+        if self.center_x <= 0:
+            self.direccion_x = abs(self.direccion_x)
+            self.center_x = 1
+            reboto = True
+        elif self.center_x >= ancho:
+            self.direccion_x = -abs(self.direccion_x)
+            self.center_x = ancho - 1
+            reboto = True
+
+        # Rebotar en paredes verticales
+        if self.center_y <= 0:
+            self.direccion_y = abs(self.direccion_y)
+            self.center_y = 1
+            reboto = True
+        elif self.center_y >= alto:
+            self.direccion_y = -abs(self.direccion_y)
+            self.center_y = alto - 1
+            reboto = True
+
+        if reboto:
+            self._rebotes_actuales -= 1
+
+        return reboto
 
     def __repr__(self) -> str:
         tipo = "jugador" if self.es_del_jugador else "enemigo"

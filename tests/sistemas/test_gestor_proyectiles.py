@@ -2,6 +2,7 @@ import pytest
 from src.sistemas.gestor_proyectiles import GestorProyectiles
 from src.entidades.proyectil import Proyectil
 from src.entidades.enemigo import Enemigo
+from src.entidades.personaje import Personaje
 
 
 class TestGestorProyectiles:
@@ -52,7 +53,8 @@ class TestGestorProyectiles:
     def test_crear_proyectil_jugador(self):
         """Verifica que se crean proyectiles del jugador correctamente."""
         gestor = GestorProyectiles(800, 600)
-        proyectil = gestor.crear_proyectil_jugador(100, 100, 0, 1)
+        personaje = Personaje("Heroe")
+        proyectil = gestor.crear_proyectil_jugador(100, 100, 0, 1, personaje)
         assert proyectil is not None, "Debe crear un proyectil"
         assert proyectil.es_del_jugador, "El proyectil debe ser del jugador"
         assert proyectil.center_x == 100, "La posición X debe ser 100"
@@ -61,8 +63,26 @@ class TestGestorProyectiles:
         assert gestor._cooldown_jugador > 0, "Debe activar el cooldown del jugador"
 
         # Verificar que no se puede crear otro proyectil mientras está en cooldown
-        proyectil = gestor.crear_proyectil_jugador(100, 100, 0, 1)
+        proyectil = gestor.crear_proyectil_jugador(100, 100, 0, 1, personaje)
         assert proyectil is None, "No debe crear un proyectil mientras está en cooldown"
+
+    def test_crear_proyectil_jugador_con_mejoras(self):
+        """Verifica que las mejoras de proyectil se aplican correctamente."""
+        gestor = GestorProyectiles(800, 600)
+        personaje = Personaje("Heroe")
+
+        # Aplicar mejoras
+        personaje.mejorar_dano_proyectil()
+        personaje.mejorar_velocidad_proyectil()
+        personaje.mejorar_rebote()
+
+        proyectil = gestor.crear_proyectil_jugador(100, 100, 0, 1, personaje)
+        assert proyectil is not None, "Debe crear un proyectil"
+        # Base damage is 10, with improvement becomes 12 (1.2x multiplier)
+        assert proyectil.dano >= 12, (
+            f"El daño debe aumentar con la mejora (obtenido: {proyectil.dano})"
+        )
+        assert proyectil.rebotes_actuales > 0, "El proyectil debe tener rebotes"
 
     def test_crear_proyectil_enemigo(self):
         """Verifica que se crean proyectiles de enemigos correctamente."""
