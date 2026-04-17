@@ -44,19 +44,31 @@ class Juego(arcade.Window):
         # Crear personaje
         self.personaje = Personaje("Heroe")
 
-        # Cargar imagen de fondo como sprite
-        self._fondo_texture = arcade.load_texture("assets/Sample1.png")
+        # Cargar imagen de fondo como sprite (wrappeado en try/except)
+        try:
+            self._fondo_texture = arcade.load_texture("assets/Sample1.png")
+        except FileNotFoundError:
+            print("ADVERTENCIA: No se encontró 'assets/Sample1.png'. Usando color de fondo sólido.")
+            self._fondo_texture = None
+        except IOError as e:
+            print(f"ADVERTENCIA: Error al cargar fondo '{e}'. Usando color de fondo sólido.")
+            self._fondo_texture = None
+
+        # Crear sprite de fondo solo si se cargó correctamente
         self._sprite_fondo = arcade.Sprite()
-        self._sprite_fondo.texture = self._fondo_texture
-        self._sprite_fondo.center_x = ANCHO_VENTANA // 2
-        self._sprite_fondo.center_y = ALTO_VENTANA // 2
-        # Escalar para que cubra toda la ventana
-        scale_x = ANCHO_VENTANA / self._fondo_texture.width
-        scale_y = ALTO_VENTANA / self._fondo_texture.height
-        self._sprite_fondo.scale = max(scale_x, scale_y)
+        if self._fondo_texture:
+            self._sprite_fondo.texture = self._fondo_texture
+            self._sprite_fondo.center_x = ANCHO_VENTANA // 2
+            self._sprite_fondo.center_y = ALTO_VENTANA // 2
+            # Escalar para que cubra toda la ventana
+            scale_x = ANCHO_VENTANA / self._fondo_texture.width
+            scale_y = ALTO_VENTANA / self._fondo_texture.height
+            self._sprite_fondo.scale = max(scale_x, scale_y)
+
         # Crear SpriteList para el fondo
         self._lista_fondo = arcade.SpriteList()
-        self._lista_fondo.append(self._sprite_fondo)
+        if self._fondo_texture:
+            self._lista_fondo.append(self._sprite_fondo)
 
         # Cooldown de ataque del jugador
         self._tiempo_ultimo_ataque = 0.0

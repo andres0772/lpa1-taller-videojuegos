@@ -98,6 +98,7 @@ class MenuTienda:
     def _manejar_vender(self, key) -> bool:
         """Maneja el menú de venta."""
         if self._personaje.inventario:
+            # IMPORTANTE: limitar a 1-8 para coincidir con display (línea 361 muestra hasta 8 items)
             mapeo = {
                 arcade.key.NUM_1: 0,
                 arcade.key.KEY_1: 0,
@@ -115,8 +116,6 @@ class MenuTienda:
                 arcade.key.KEY_7: 6,
                 arcade.key.NUM_8: 7,
                 arcade.key.KEY_8: 7,
-                arcade.key.NUM_9: 8,
-                arcade.key.KEY_9: 8,
             }
 
             if key in mapeo:

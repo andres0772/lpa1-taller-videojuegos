@@ -145,10 +145,9 @@ class GestorProyectiles:
             return None
 
         # Inicializar timer si no existe (para el primer disparo)
+        # Delay inicial de 2 segundos antes de que pueda disparar
         if enemigo not in self._timers_disparo_enemigo:
-            self._timers_disparo_enemigo[enemigo] = random.uniform(
-                self.COOLDOWN_MIN_ENEMIGO, self.COOLDOWN_MAX_ENEMIGO
-            )
+            self._timers_disparo_enemigo[enemigo] = 2.0
             return None
 
         # Verificar si el timer expiró (> 0 means cooldown ACTIVE, need <= 0 to fire)
