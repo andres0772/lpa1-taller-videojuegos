@@ -1,8 +1,18 @@
 """UI de la tienda."""
 
 import arcade
-from ..sistemas.tienda import SistemaTienda
 
+from ..sistemas.tienda import SistemaTienda
+from .overlay_comun import (
+    COLOR_ACENTO_INFO,
+    COLOR_ACENTO_PELIGRO,
+    COLOR_ATENUADO,
+    COLOR_TITULO,
+    COLOR_TEXTO,
+    dibujar_panel_centrado,
+    dibujar_separador_horizontal,
+    texto_legible,
+)
 
 # Variables globales para dimensiones (para evitar imports circulares)
 ANCHO_VENTANA = 1080
@@ -10,7 +20,7 @@ ALTO_VENTANA = 720
 
 
 class MenuTienda:
-    """Menú de la tienda可视化."""
+    """Menú de la tienda."""
 
     def __init__(self, personaje, escenario):
         self._personaje = personaje
@@ -62,7 +72,6 @@ class MenuTienda:
 
     def _manejar_comprar(self, key) -> bool:
         """Maneja el menú de compra."""
-        # Mapeo de teclas a índice (1-9)
         mapeo = {
             arcade.key.NUM_1: 0,
             arcade.key.KEY_1: 0,
@@ -72,8 +81,6 @@ class MenuTienda:
             arcade.key.KEY_3: 2,
             arcade.key.NUM_4: 3,
             arcade.key.KEY_4: 3,
-            arcade.key.NUM_5: 4,
-            arcade.key.KEY_5: 4,
         }
 
         if key in mapeo:
@@ -90,9 +97,7 @@ class MenuTienda:
 
     def _manejar_vender(self, key) -> bool:
         """Maneja el menú de venta."""
-        # El jugador presiona 1-9 para vender el item en ese índice
         if self._personaje.inventario:
-            # Calcular índice basado en tecla
             mapeo = {
                 arcade.key.NUM_1: 0,
                 arcade.key.KEY_1: 0,
@@ -121,7 +126,6 @@ class MenuTienda:
                     self._mensaje = mensaje
                     self._mostrar_mensaje_timer = 2.0
 
-                    # Si quedó vacío, volver al menú
                     if not self._personaje.inventario:
                         self._mensaje = "Inventario vacío"
                     return True
@@ -143,110 +147,91 @@ class MenuTienda:
 
     def _dibujar_menu_principal(self) -> None:
         """Dibuja el menú principal de la tienda."""
-        # Fondo del panel - más pequeño y compacto
-        ancho = 420
-        alto = 380
+        ancho = 440
+        alto = 400
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
+        _, _, abajo, arriba = dibujar_panel_centrado(x, y, ancho, alto)
 
-        arcade.draw_lrbt_rectangle_filled(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=(0, 0, 0, 220),
-        )
-
-        # Borde
-        arcade.draw_lrbt_rectangle_outline(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=arcade.color.GOLD,
-            border_width=3,
-        )
-
-        # Título
-        arcade.draw_text(
+        texto_legible(
             "TIENDA",
-            x - -0.1,
-            y + alto // 2 - 25,
-            arcade.color.GOLD,
-            22,
-            anchor_x="left",
+            x,
+            arriba - 18,
+            COLOR_TITULO,
+            24,
+            anchor_x="center",
             anchor_y="top",
             bold=True,
         )
-
-        # Oro del jugador
-        arcade.draw_text(
+        texto_legible(
             f"Tu oro: {self._personaje.oro}",
-            x - 130,
-            y + alto // 2 - 55,
-            arcade.color.YELLOW,
+            x,
+            arriba - 50,
+            COLOR_TITULO,
+            15,
+            anchor_x="center",
+            anchor_y="top",
+        )
+        dibujar_separador_horizontal(x, arriba - 62, ancho)
+
+        y_opc = arriba - 88
+        espacio = 40
+        texto_legible(
+            "1  ·  Comprar mejoras",
+            x,
+            y_opc,
+            COLOR_TEXTO,
             16,
-            anchor_x="left",
+            anchor_x="center",
+            anchor_y="top",
+        )
+        texto_legible(
+            "2  ·  Vender ítems del inventario",
+            x,
+            y_opc - espacio,
+            COLOR_TEXTO,
+            16,
+            anchor_x="center",
+            anchor_y="top",
+        )
+        texto_legible(
+            "3  ·  Salir   (ESC)",
+            x,
+            y_opc - 2 * espacio,
+            COLOR_ATENUADO,
+            16,
+            anchor_x="center",
             anchor_y="top",
         )
 
-        # Opciones con más espacio entre cada una
-        y_inicio = y + alto // 2 - 85
-
-        arcade.draw_text(
-            "[1] Comprar mejoras",
-            x - 130,
-            y_inicio,
-            arcade.color.WHITE,
-            16,
-            anchor_x="left",
-        )
-
-        arcade.draw_text(
-            "[2] Vender items del inventario",
-            x - 130,
-            y_inicio - 35,
-            arcade.color.WHITE,
-            16,
-            anchor_x="left",
-        )
-
-        arcade.draw_text(
-            "[3] Salir / ESC",
-            x - 130,
-            y_inicio - 70,
-            arcade.color.GRAY,
-            16,
-            anchor_x="left",
-        )
-
-        # Stats actuales - mostrar mejoras de proyectiles
-        arcade.draw_text(
-            f"COOLDOWN: {self._personaje.cooldown_disparo:.2f}s | DAÑO: x{self._personaje.dano_proyectil:.2f}",
-            x - 130,
-            y - alto // 2 + 25,
-            arcade.color.CYAN,
+        texto_legible(
+            f"Cooldown {self._personaje.cooldown_disparo:.2f}s  ·  Daño ×{self._personaje.dano_proyectil:.2f}",
+            x,
+            abajo + 38,
+            COLOR_ACENTO_INFO,
             12,
-            anchor_x="left",
+            anchor_x="center",
             anchor_y="bottom",
         )
-        arcade.draw_text(
-            f"VELOCIDAD: x{self._personaje.velocidad_proyectil:.2f} | REBOTES: {self._personaje.rebotes}",
-            x - 130,
-            y - alto // 2 + 40,
-            arcade.color.CYAN,
+        texto_legible(
+            f"Velocidad proyectil ×{self._personaje.velocidad_proyectil:.2f}  ·  Rebotes {self._personaje.rebotes}",
+            x,
+            abajo + 20,
+            COLOR_ACENTO_INFO,
             12,
-            anchor_x="left",
+            anchor_x="center",
             anchor_y="bottom",
         )
 
-        # Mensaje de feedback
         if self._mensaje:
-            arcade.draw_text(
+            color = (
+                (150, 210, 160) if "¡" in self._mensaje else COLOR_ACENTO_PELIGRO
+            )
+            texto_legible(
                 self._mensaje,
                 x,
-                y - alto // 2 + 60,
-                arcade.color.LIGHT_GREEN if "¡" in self._mensaje else arcade.color.RED,
+                abajo + 58,
+                color,
                 14,
                 anchor_x="center",
                 anchor_y="bottom",
@@ -254,99 +239,87 @@ class MenuTienda:
 
     def _dibujar_menu_comprar(self) -> None:
         """Dibuja el menú de compra."""
-        # Fondo del panel
-        ancho = 450
-        alto = 400
+        ancho = 470
+        alto = 420
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
+        _, _, abajo, arriba = dibujar_panel_centrado(x, y, ancho, alto)
 
-        arcade.draw_lrbt_rectangle_filled(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=(0, 0, 0, 220),
-        )
-
-        arcade.draw_lrbt_rectangle_outline(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=arcade.color.GOLD,
-            border_width=3,
-        )
-
-        # Título
-        arcade.draw_text(
-            "💥 MEJORAS DE PROYECTILES",
+        texto_legible(
+            "Mejoras de proyectiles",
             x,
-            y + alto // 2 - 30,
-            arcade.color.GOLD,
-            22,
+            arriba - 18,
+            COLOR_TITULO,
+            20,
             anchor_x="center",
             anchor_y="top",
             bold=True,
         )
-
-        # Oro
-        arcade.draw_text(
-            f"Oro disponible: {self._personaje.oro} 💰",
+        texto_legible(
+            f"Oro disponible: {self._personaje.oro}",
             x,
-            y + alto // 2 - 60,
-            arcade.color.YELLOW,
+            arriba - 48,
+            COLOR_TITULO,
             14,
             anchor_x="center",
             anchor_y="top",
         )
+        dibujar_separador_horizontal(x, arriba - 58, ancho)
 
-        # Items en venta
         items = SistemaTienda.getter_items_tienda()
         iconos = {
-            "velocidad_disparo": "⚡",
-            "dano_proyectil": "💥",
-            "velocidad_proyectil": "🎯",
-            "rebote": "↩️",
+            "velocidad_disparo": "[+]",
+            "dano_proyectil": "[*]",
+            "velocidad_proyectil": "[>]",
+            "rebote": "[~]",
         }
+        y0 = arriba - 84
         for i, item in enumerate(items):
-            # Color según stock y precio
-            color = arcade.color.WHITE
+            color = COLOR_TEXTO
             if item.stock == 0:
-                color = arcade.color.GRAY
+                color = COLOR_ATENUADO
             elif self._personaje.oro < item.precio:
-                color = arcade.color.RED
+                color = COLOR_ACENTO_PELIGRO
 
-            icono = iconos.get(item.tipo, "•")
-            nombre = f"[{i + 1}] {icono} {item.nombre}"
-            detalle = f"{item.precio}g"
+            icono = iconos.get(item.tipo, "[·]")
+            nombre = f"{i + 1}  ·  {icono}  {item.nombre}"
+            detalle = f"{item.precio} g"
 
-            arcade.draw_text(
-                nombre, x - 150, y + alto // 2 - 95 - i * 30, color, 14, anchor_x="left"
+            texto_legible(
+                nombre,
+                x - 175,
+                y0 - i * 30,
+                color,
+                14,
+                anchor_x="left",
+                anchor_y="top",
             )
-            arcade.draw_text(
-                detalle, x + 50, y + alto // 2 - 95 - i * 30, color, 14, anchor_x="left"
+            texto_legible(
+                detalle,
+                x + 120,
+                y0 - i * 30,
+                color,
+                14,
+                anchor_x="left",
+                anchor_y="top",
             )
 
-        # Instrucciones
-        arcade.draw_text(
-            "Presiona [1-4] para comprar, [ESC] para volver",
+        texto_legible(
+            "[1-4] Comprar   ·   [ESC] Volver",
             x,
-            y - alto // 2 + 30,
-            arcade.color.GRAY,
+            abajo + 28,
+            COLOR_ATENUADO,
             12,
             anchor_x="center",
             anchor_y="bottom",
         )
 
-        # Mensaje
         if self._mensaje:
-            color = (
-                arcade.color.LIGHT_GREEN if "¡" in self._mensaje else arcade.color.RED
-            )
-            arcade.draw_text(
+            color = (150, 210, 160) if "¡" in self._mensaje else COLOR_ACENTO_PELIGRO
+            texto_legible(
                 self._mensaje,
                 x,
-                y - alto // 2 + 60,
+                abajo + 52,
                 color,
                 14,
                 anchor_x="center",
@@ -355,108 +328,87 @@ class MenuTienda:
 
     def _dibujar_menu_vender(self) -> None:
         """Dibuja el menú de venta."""
-        # Fondo del panel
-        ancho = 450
-        alto = 400
+        ancho = 470
+        alto = 420
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
+        _, _, abajo, arriba = dibujar_panel_centrado(x, y, ancho, alto)
 
-        arcade.draw_lrbt_rectangle_filled(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=(0, 0, 0, 220),
-        )
-
-        arcade.draw_lrbt_rectangle_outline(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=arcade.color.GOLD,
-            border_width=3,
-        )
-
-        # Título
-        arcade.draw_text(
-            "💵 VENDER ITEMS",
+        texto_legible(
+            "Vender ítems",
             x,
-            y + alto // 2 - 30,
-            arcade.color.GOLD,
-            22,
+            arriba - 18,
+            COLOR_TITULO,
+            20,
             anchor_x="center",
             anchor_y="top",
             bold=True,
         )
-
-        # Oro actual
-        arcade.draw_text(
-            f"Oro actual: {self._personaje.oro} 💰",
+        texto_legible(
+            f"Oro actual: {self._personaje.oro}",
             x,
-            y + alto // 2 - 60,
-            arcade.color.YELLOW,
+            arriba - 48,
+            COLOR_TITULO,
             14,
             anchor_x="center",
             anchor_y="top",
         )
+        dibujar_separador_horizontal(x, arriba - 58, ancho)
 
-        # Inventario
         inventario = self._personaje.inventario
+        y0 = arriba - 84
         if inventario:
-            for i, item in enumerate(inventario[:8]):  # Máximo 8 items visbles
-                tipo_icon = "⚔️" if item.tipo == "arma" else "🛡️"
+            for i, item in enumerate(inventario[:8]):
+                tipo_icon = "[A]" if item.tipo == "arma" else "[D]"
                 valor_venta = item.vender()
-                nombre = f"[{i + 1}] {tipo_icon} {item.nombre}"
-                detalle = f"+{item.bonus} {item.tipo} = {valor_venta}g"
+                nombre = f"{i + 1}  ·  {tipo_icon}  {item.nombre}"
+                detalle = f"+{item.bonus}  ·  {valor_venta} g"
 
-                arcade.draw_text(
+                texto_legible(
                     nombre,
-                    x - 150,
-                    y + alto // 2 - 95 - i * 30,
-                    arcade.color.WHITE,
+                    x - 175,
+                    y0 - i * 30,
+                    COLOR_TEXTO,
                     14,
                     anchor_x="left",
+                    anchor_y="top",
                 )
-                arcade.draw_text(
+                texto_legible(
                     detalle,
-                    x + 50,
-                    y + alto // 2 - 95 - i * 30,
-                    arcade.color.YELLOW,
+                    x + 100,
+                    y0 - i * 30,
+                    COLOR_TITULO,
                     14,
                     anchor_x="left",
+                    anchor_y="top",
                 )
         else:
-            arcade.draw_text(
+            texto_legible(
                 "Inventario vacío",
                 x,
                 y,
-                arcade.color.RED,
+                COLOR_ACENTO_PELIGRO,
                 16,
                 anchor_x="center",
                 anchor_y="center",
             )
 
-        # Instrucciones
-        arcade.draw_text(
-            "Presiona [1-8] para vender item, [ESC] para volver",
+        texto_legible(
+            "[1-8] Vender   ·   [ESC] Volver",
             x,
-            y - alto // 2 + 30,
-            arcade.color.GRAY,
+            abajo + 28,
+            COLOR_ATENUADO,
             12,
             anchor_x="center",
             anchor_y="bottom",
         )
 
-        # Mensaje
         if self._mensaje:
-            color = (
-                arcade.color.LIGHT_GREEN if "¡" in self._mensaje else arcade.color.RED
-            )
-            arcade.draw_text(
+            color = (150, 210, 160) if "¡" in self._mensaje else COLOR_ACENTO_PELIGRO
+            texto_legible(
                 self._mensaje,
                 x,
-                y - alto // 2 + 60,
+                abajo + 52,
                 color,
                 14,
                 anchor_x="center",

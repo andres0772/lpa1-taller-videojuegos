@@ -17,6 +17,7 @@ import arcade
 from typing import TYPE_CHECKING
 
 from ..entidades import Proyectil, Enemigo, Personaje
+from ..config.sprite_loader import cargar_sprite_proyectil
 
 if TYPE_CHECKING:
     from ..mundo.escenario import Escenario
@@ -286,11 +287,8 @@ class GestorProyectiles:
         self._cooldown_jugador = 0.0
 
     def _crear_sprite_proyectil(self, proyectil: Proyectil) -> arcade.Sprite:
-        """Crea el sprite visual de un proyectil."""
-        color = arcade.color.CYAN if proyectil.es_del_jugador else arcade.color.ORANGE
-        sprite = arcade.SpriteSolidColor(
-            proyectil.tamaño, proyectil.tamaño, color=color
-        )
+        """Crea el sprite visual de un proyectil usando sprites de Kenney."""
+        sprite = cargar_sprite_proyectil(es_enemigo=not proyectil.es_del_jugador)
         sprite.center_x = proyectil.center_x
         sprite.center_y = proyectil.center_y
         return sprite

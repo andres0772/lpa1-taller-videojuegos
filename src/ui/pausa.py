@@ -2,6 +2,17 @@
 
 import arcade
 
+from .overlay_comun import (
+    COLOR_ACENTO_INFO,
+    COLOR_ACENTO_OK,
+    COLOR_ACENTO_PELIGRO,
+    COLOR_ATENUADO,
+    COLOR_TITULO,
+    COLOR_TEXTO,
+    dibujar_panel_centrado,
+    dibujar_separador_horizontal,
+    texto_legible,
+)
 
 # Variables globales para dimensiones (para evitar imports circulares)
 ANCHO_VENTANA = 1080
@@ -70,78 +81,49 @@ class MenuPausa:
 
     def _dibujar_menu_principal(self) -> None:
         """Dibuja el menú principal de pausa."""
-        # Fondo del panel
-        ancho = 400
-        alto = 350
+        ancho = 420
+        alto = 360
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
+        _, _, _, arriba = dibujar_panel_centrado(x, y, ancho, alto)
 
-        arcade.draw_lrbt_rectangle_filled(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=(0, 0, 0, 230),
-        )
-
-        # Borde
-        arcade.draw_lrbt_rectangle_outline(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=arcade.color.CYAN,
-            border_width=3,
-        )
-
-        # Título
-        arcade.draw_text(
+        texto_legible(
             "PAUSA",
             x,
-            y + alto // 2 - 30,
-            arcade.color.CYAN,
-            28,
+            arriba - 20,
+            COLOR_TITULO,
+            26,
             anchor_x="center",
             anchor_y="top",
             bold=True,
         )
+        # Debajo del título (evita la línea cortando las letras)
+        dibujar_separador_horizontal(x, arriba - 52, ancho)
 
-        # Dividir visual
-        arcade.draw_line(
-            x - ancho // 2 + 20,
-            y + alto // 2 - 50,
-            x + ancho // 2 - 20,
-            y + alto // 2 - 50,
-            arcade.color.GRAY,
-            1,
-        )
-
-        # Opciones del menú
-        y_inicio = y + alto // 2 - 80
-
-        opciones = [
-            ("[1] Continuar juego", arcade.color.GREEN),
-            ("[2] Stats del personaje", arcade.color.WHITE),
-            ("[3] Configuracion", arcade.color.GRAY),
-            ("[4] Salir del juego", arcade.color.RED),
+        y_opc = arriba - 78
+        espacio = 42
+        opciones: list[tuple[str, tuple[int, int, int]]] = [
+            ("1  ·  Continuar juego", COLOR_ACENTO_OK),
+            ("2  ·  Stats del personaje", COLOR_TEXTO),
+            ("3  ·  Configuración", COLOR_ATENUADO),
+            ("4  ·  Salir del juego", COLOR_ACENTO_PELIGRO),
         ]
-
         for i, (texto, color) in enumerate(opciones):
-            arcade.draw_text(
+            texto_legible(
                 texto,
-                x - 120,
-                y_inicio - i * 45,
+                x,
+                y_opc - i * espacio,
                 color,
                 16,
-                anchor_x="left",
+                anchor_x="center",
+                anchor_y="top",
             )
 
-        # Instrucciones
-        arcade.draw_text(
-            "Presiona el numero de opcion | [ESC] para cancelar",
+        texto_legible(
+            "Número de opción  ·  [ESC] volver al juego",
             x,
-            y - alto // 2 + 30,
-            arcade.color.GRAY,
+            y - alto // 2 + 28,
+            COLOR_ATENUADO,
             12,
             anchor_x="center",
             anchor_y="bottom",
@@ -149,175 +131,161 @@ class MenuPausa:
 
     def _dibujar_menu_stats(self) -> None:
         """Dibuja el submenú de stats del personaje."""
-        # Fondo del panel más grande para stats
-        ancho = 450
-        alto = 420
+        ancho = 460
+        alto = 440
         x = ANCHO_VENTANA // 2
         y = ALTO_VENTANA // 2
+        _, _, _, arriba = dibujar_panel_centrado(x, y, ancho, alto)
 
-        arcade.draw_lrbt_rectangle_filled(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=(0, 0, 0, 230),
-        )
-
-        arcade.draw_lrbt_rectangle_outline(
-            left=x - ancho // 2,
-            right=x + ancho // 2,
-            top=y + alto // 2,
-            bottom=y - alto // 2,
-            color=arcade.color.GOLD,
-            border_width=3,
-        )
-
-        # Título
-        arcade.draw_text(
-            "STATS DEL PERSONAJE",
+        texto_legible(
+            "Personaje",
             x,
-            y + alto // 2 - 30,
-            arcade.color.GOLD,
-            24,
+            arriba - 20,
+            COLOR_TITULO,
+            22,
             anchor_x="center",
             anchor_y="top",
             bold=True,
         )
+        dibujar_separador_horizontal(x, arriba - 48, ancho)
 
-        # Información del personaje
-        y_inicio = y + alto // 2 - 70
+        y_inicio = arriba - 72
+        interlineado = 26
 
-        # Stats principales
-        stats_info = [
-            (f"Nombre: {self._personaje.nombre}", arcade.color.WHITE),
-            (f"Nivel: {self._personaje.nivel}", arcade.color.GOLD),
+        stats_info: list[tuple[str, tuple[int, int, int]]] = [
+            (f"Nombre: {self._personaje.nombre}", COLOR_TEXTO),
+            (f"Nivel: {self._personaje.nivel}", COLOR_TITULO),
             (
-                f"HP: {self._personaje.hp_actual}/{self._personaje.hp_max}",
-                arcade.color.GREEN,
+                f"HP: {self._personaje.hp_actual} / {self._personaje.hp_max}",
+                COLOR_ACENTO_OK,
             ),
             (
-                f"Ataque: {self._personaje.ataque_total} (base: {self._personaje.ataque})",
-                arcade.color.RED,
+                f"Ataque: {self._personaje.ataque_total}  (base {self._personaje.ataque})",
+                COLOR_ACENTO_PELIGRO,
             ),
             (
-                f"Defensa: {self._personaje.defensa_total} (base: {self._personaje.defensa})",
-                arcade.color.BLUE,
+                f"Defensa: {self._personaje.defensa_total}  (base {self._personaje.defensa})",
+                COLOR_ACENTO_INFO,
             ),
-            (f"Oro: {self._personaje.oro}", arcade.color.YELLOW),
+            (f"Oro: {self._personaje.oro}", COLOR_TITULO),
             (
-                f"XP: {self._personaje.experiencia}/{self._personaje.experiencia_siguiente_nivel}",
-                arcade.color.CYAN,
+                f"XP: {self._personaje.experiencia} / {self._personaje.experiencia_siguiente_nivel}",
+                COLOR_ATENUADO,
             ),
         ]
 
         for i, (texto, color) in enumerate(stats_info):
-            arcade.draw_text(
+            texto_legible(
                 texto,
-                x - 150,
-                y_inicio - i * 30,
+                x - 170,
+                y_inicio - i * interlineado,
                 color,
                 14,
                 anchor_x="left",
+                anchor_y="top",
             )
 
-        # Equipamiento actual
-        y_equipo = y_inicio - len(stats_info) * 30 - 20
-
-        arcade.draw_text(
-            "EQUIPAMIENTO:",
-            x - 150,
+        y_equipo = y_inicio - len(stats_info) * interlineado - 16
+        texto_legible(
+            "Equipamiento",
+            x - 170,
             y_equipo,
-            arcade.color.PURPLE,
+            COLOR_TITULO,
             14,
             anchor_x="left",
+            anchor_y="top",
             bold=True,
         )
 
-        y_equipo -= 25
+        y_equipo -= interlineado
         arma = self._personaje.arma_equipada
         armadura = self._personaje.armadura_equipada
 
         if arma:
-            arcade.draw_text(
-                f"Espada: {arma.nombre} (+{arma.bonus})",
-                x - 150,
+            texto_legible(
+                f"Arma: {arma.nombre}  (+{arma.bonus})",
+                x - 170,
                 y_equipo,
-                arcade.color.WHITE,
-                14,
+                COLOR_TEXTO,
+                13,
                 anchor_x="left",
+                anchor_y="top",
             )
         else:
-            arcade.draw_text(
-                "Espada: (ninguna)",
-                x - 150,
+            texto_legible(
+                "Arma: (ninguna)",
+                x - 170,
                 y_equipo,
-                arcade.color.GRAY,
-                14,
+                COLOR_ATENUADO,
+                13,
                 anchor_x="left",
+                anchor_y="top",
             )
 
-        y_equipo -= 25
+        y_equipo -= interlineado - 2
         if armadura:
-            arcade.draw_text(
-                f"Armadura: {armadura.nombre} (+{armadura.bonus})",
-                x - 150,
+            texto_legible(
+                f"Armadura: {armadura.nombre}  (+{armadura.bonus})",
+                x - 170,
                 y_equipo,
-                arcade.color.WHITE,
-                14,
+                COLOR_TEXTO,
+                13,
                 anchor_x="left",
+                anchor_y="top",
             )
         else:
-            arcade.draw_text(
+            texto_legible(
                 "Armadura: (ninguna)",
-                x - 150,
+                x - 170,
                 y_equipo,
-                arcade.color.GRAY,
-                14,
+                COLOR_ATENUADO,
+                13,
                 anchor_x="left",
+                anchor_y="top",
             )
 
-        # Inventario
-        y_inv = y_equipo - 40
-
-        arcade.draw_text(
-            f"INVENTARIO ({len(self._personaje.inventario)} items):",
-            x - 150,
+        y_inv = y_equipo - interlineado - 10
+        texto_legible(
+            f"Inventario  ({len(self._personaje.inventario)} ítems)",
+            x - 170,
             y_inv,
-            arcade.color.ORANGE,
+            COLOR_TITULO,
             14,
             anchor_x="left",
+            anchor_y="top",
             bold=True,
         )
 
-        inventario = self._personaje.inventario[:6]  # Mostrar max 6
-        y_inv -= 25
+        inventario = self._personaje.inventario[:6]
+        y_inv -= interlineado
         for i, item in enumerate(inventario):
             tipo_icon = "S" if item.tipo == "arma" else "A"
-            arcade.draw_text(
-                f"  - {tipo_icon} {item.nombre} (+{item.bonus})",
-                x - 150,
+            texto_legible(
+                f"  ·  [{tipo_icon}] {item.nombre}  (+{item.bonus})",
+                x - 170,
                 y_inv - i * 22,
-                arcade.color.WHITE,
+                COLOR_TEXTO,
                 12,
                 anchor_x="left",
+                anchor_y="top",
             )
 
         if not inventario:
-            arcade.draw_text(
-                "  (vacio)",
-                x - 150,
+            texto_legible(
+                "  (vacío)",
+                x - 170,
                 y_inv,
-                arcade.color.GRAY,
+                COLOR_ATENUADO,
                 12,
                 anchor_x="left",
+                anchor_y="top",
             )
 
-        # Instrucciones para volver
-        arcade.draw_text(
-            "Presiona [ESC] para volver al menu",
+        texto_legible(
+            "[ESC] Volver al menú de pausa",
             x,
-            y - alto // 2 + 30,
-            arcade.color.GRAY,
+            y - alto // 2 + 28,
+            COLOR_ATENUADO,
             12,
             anchor_x="center",
             anchor_y="bottom",

@@ -16,6 +16,12 @@ from src.mundo import Escenario
 from src.ui import HUD, MenuTienda, MenuPausa
 from src.items import Tesoro, TrampaExplosiva, ItemDrop
 from src.sistemas import SistemaCombate, GestorProyectiles, GestorCombate, GestorItems
+from src.config.sprite_loader import (
+    cargar_sprite_jugador,
+    cargar_sprite_enemigo,
+    cargar_sprite_item,
+    cargar_sprite_proyectil,
+)
 
 ANCHO_VENTANA = 1080
 ALTO_VENTANA = 720
@@ -37,6 +43,20 @@ class Juego(arcade.Window):
 
         # Crear personaje
         self.personaje = Personaje("Heroe")
+
+        # Cargar imagen de fondo como sprite
+        self._fondo_texture = arcade.load_texture("assets/Sample1.png")
+        self._sprite_fondo = arcade.Sprite()
+        self._sprite_fondo.texture = self._fondo_texture
+        self._sprite_fondo.center_x = ANCHO_VENTANA // 2
+        self._sprite_fondo.center_y = ALTO_VENTANA // 2
+        # Escalar para que cubra toda la ventana
+        scale_x = ANCHO_VENTANA / self._fondo_texture.width
+        scale_y = ALTO_VENTANA / self._fondo_texture.height
+        self._sprite_fondo.scale = max(scale_x, scale_y)
+        # Crear SpriteList para el fondo
+        self._lista_fondo = arcade.SpriteList()
+        self._lista_fondo.append(self._sprite_fondo)
 
         # Cooldown de ataque del jugador
         self._tiempo_ultimo_ataque = 0.0
@@ -89,17 +109,14 @@ class Juego(arcade.Window):
 
         # Agregar enemigos como sprites
         for enemigo in self.escenario.enemigos:
-            color = (
-                arcade.color.GREEN if enemigo.tipo == "terrestre" else arcade.color.RED
-            )
-            sprite = self._crear_sprite_enemigo(enemigo, color)
+            sprite = self._crear_sprite_enemigo(enemigo, None)
             self.lista_sprites.append(sprite)
             enemigo.sprite = sprite
 
         # Agregar items como sprites
         for item in self.escenario.items:
             if isinstance(item, Tesoro):
-                sprite = self._crear_sprite_item(arcade.color.GOLD)
+                sprite = self._crear_sprite_item(None)
                 self.lista_sprites.append(sprite)
                 item.sprite = sprite
 
@@ -114,23 +131,22 @@ class Juego(arcade.Window):
         self.personaje.sprite = self.sprite_jugador
 
     def _crear_sprite_jugador(self):
-        """Crea el sprite del jugador (rectángulo azul)."""
-        sprite = arcade.SpriteSolidColor(40, 40, color=arcade.color.BLUE)
+        """Crea el sprite del jugador desde el spritesheet de Kenney."""
+        sprite = cargar_sprite_jugador()
         sprite.center_x = ANCHO_VENTANA // 2
         sprite.center_y = ALTO_VENTANA // 2
         self.sprite_jugador = sprite
 
     def _crear_sprite_enemigo(self, enemigo: Enemigo, color):
-        """Crea el sprite de un enemigo."""
-        size = 35
-        sprite = arcade.SpriteSolidColor(size, size, color=color)
+        """Crea el sprite de un enemigo desde el spritesheet de Kenney."""
+        sprite = cargar_sprite_enemigo(enemigo.tipo)
         sprite.center_x = enemigo.center_x
         sprite.center_y = enemigo.center_y
         return sprite
 
     def _crear_sprite_item(self, color):
-        """Crea el sprite de un item."""
-        sprite = arcade.SpriteSolidColor(20, 20, color=color)
+        """Crea el sprite de un item desde el spritesheet de Kenney."""
+        sprite = cargar_sprite_item()
         return sprite
 
     def _actualizar_color_fondo(self):
@@ -149,17 +165,14 @@ class Juego(arcade.Window):
 
         # Agregar enemigos del área actual
         for enemigo in self.escenario.enemigos:
-            color = (
-                arcade.color.GREEN if enemigo.tipo == "terrestre" else arcade.color.RED
-            )
-            sprite = self._crear_sprite_enemigo(enemigo, color)
+            sprite = self._crear_sprite_enemigo(enemigo, None)
             self.lista_sprites.append(sprite)
             enemigo.sprite = sprite
 
         # Agregar items del área actual
         for item in self.escenario.items:
             if isinstance(item, Tesoro):
-                sprite = self._crear_sprite_item(arcade.color.GOLD)
+                sprite = self._crear_sprite_item(None)
                 self.lista_sprites.append(sprite)
                 item.sprite = sprite
 
@@ -592,10 +605,8 @@ class Juego(arcade.Window):
 
     def on_draw(self):
         """Dibuja el juego."""
-        # Limpiar la pantalla cada frame para evitar rastros
-        self.clear()
-
-        # El background color ya se configuró en __init__
+        # Dibujar fondo
+        self._lista_fondo.draw()
 
         # Dibujar sprites
         self.lista_sprites.draw()
@@ -617,30 +628,47 @@ class Juego(arcade.Window):
         if self._pausa_abierta:
             self.pausa.dibujar()
 
-        # Feedback visual de ataque (cambiar color del jugador temporalmente)
-        if self._jugador_atacando:
-            self.sprite_jugador.color = arcade.color.YELLOW
-        else:
-            self.sprite_jugador.color = arcade.color.BLUE
+        # Feedback visual de ataque (desactivado con sprites)
+        # Con sprites de textura, no podemos cambiar el color directamente
+        # TODO: Implementar feedback visual alternativo (ej: borde brillante)
+        # if self._jugador_atacando:
+        #     self.sprite_jugador.color = arcade.color.YELLOW
+        # else:
+        #     self.sprite_jugador.color = arcade.color.BLUE
 
-        # Instrucciones
-        arcade.draw_text(
-            "Flechas: mover | [ESPACIO] Disparar | [T] Tienda | [M] Cambiar área | [ESC/P] Pausa",
-            ANCHO_VENTANA // 2,
-            ALTO_VENTANA - 30,
-            arcade.color.WHITE,
-            16,
-            anchor_x="center",
+        # Franja superior: evita solapar "Área" con el texto centrado de controles
+        franja_alto = 52
+        franja_y = ALTO_VENTANA - franja_alto
+        arcade.draw_lbwh_rectangle_filled(
+            0, franja_y, ANCHO_VENTANA, franja_alto, (28, 32, 38)
+        )
+        arcade.draw_line(
+            0,
+            franja_y,
+            ANCHO_VENTANA,
+            franja_y,
+            (55, 62, 72),
+            2,
         )
 
-        # Mostrar nombre del área actual
         arcade.draw_text(
             f"Área: {self.escenario.nombre_area_actual}",
-            100,
-            ALTO_VENTANA - 30,
-            arcade.color.WHITE,
-            14,
+            16,
+            ALTO_VENTANA - 20,
+            (236, 240, 245),
+            13,
             anchor_x="left",
+            anchor_y="top",
+            bold=True,
+        )
+        arcade.draw_text(
+            "Flechas: mover · [ESPACIO] Disparar · [T] Tienda · [M] Cambiar área · [ESC/P] Pausa",
+            ANCHO_VENTANA // 2,
+            ALTO_VENTANA - 42,
+            (220, 224, 230),
+            12,
+            anchor_x="center",
+            anchor_y="top",
         )
 
         # Mostrar mensaje de victoria si el juego terminó
