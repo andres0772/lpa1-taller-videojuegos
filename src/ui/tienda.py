@@ -165,15 +165,15 @@ class MenuTienda:
         texto_legible(
             f"Tu oro: {self._personaje.oro}",
             x,
-            arriba - 50,
+            arriba - 62,
             COLOR_TITULO,
             15,
             anchor_x="center",
             anchor_y="top",
         )
-        dibujar_separador_horizontal(x, arriba - 62, ancho)
+        dibujar_separador_horizontal(x, arriba - 76, ancho)
 
-        y_opc = arriba - 88
+        y_opc = arriba - 102
         espacio = 40
         texto_legible(
             "1  ·  Comprar mejoras",
