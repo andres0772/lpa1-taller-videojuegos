@@ -107,30 +107,15 @@ class GestorCombate:
 
     def procesar_derrota_enemigo(
         self,
-        personaje: Personaje,
         enemigo: Enemigo,
-        enemigos: list[Enemigo],
-        lista_sprites: arcade.SpriteList,
     ) -> bool:
         """
         Procesa la derrota de un enemigo.
 
         Args:
-            personaje: El personaje que derrotó al enemigo
             enemigo: El enemigo derrotado
-            enemigos: Lista de enemigos
-            lista_sprites: Lista de sprites
 
         Returns:
             True si el enemigo era un jefe
         """
-        personaje.ganar_experiencia(enemigo.experiencia_al_derrotar)
-        personaje.agregar_oro(enemigo.oro_al_derrotar)
-
-        if enemigo.sprite in lista_sprites:
-            lista_sprites.remove(enemigo.sprite)
-
-        if enemigo in enemigos:
-            enemigos.remove(enemigo)
-
         return enemigo.es_jefe
