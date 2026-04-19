@@ -2,6 +2,7 @@
 
 import arcade
 
+from src.sistemas.audio import GestorAudio
 from .overlay_comun import (
     COLOR_ACENTO_INFO,
     COLOR_ACENTO_OK,
@@ -33,6 +34,7 @@ class MenuPausa:
     def abrir(self) -> None:
         """Abre el menú de pausa."""
         self._modo_actual = "menu"
+        GestorAudio.reproducir_ui()
 
     def cerrar(self) -> None:
         """Cierra el menú de pausa."""
@@ -50,16 +52,20 @@ class MenuPausa:
         """Maneja el menú principal."""
         if key in (arcade.key.NUM_1, arcade.key.KEY_1):
             # Continuar juego - cerrar menú
+            GestorAudio.reproducir_ui()
             return True  # Señal para cerrar
         elif key in (arcade.key.NUM_2, arcade.key.KEY_2):
+            GestorAudio.reproducir_ui()
             self._modo_actual = "stats"
             return True
         elif key in (arcade.key.NUM_3, arcade.key.KEY_3):
             # Configuración (simple - por ahora solo vuelve)
+            GestorAudio.reproducir_ui()
             print("Configuración no implementada aún")
             return True
         elif key in (arcade.key.NUM_4, arcade.key.KEY_4):
             # Salir del juego
+            GestorAudio.reproducir_ui()
             print("Saliendo del juego...")
             arcade.close_window()
             return True
