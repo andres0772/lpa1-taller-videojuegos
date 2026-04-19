@@ -32,7 +32,7 @@ class MenuTienda:
 
     @property
     def abierto(self) -> bool:
-        return self._modo_actual != "menu"
+        return self._modo_actual == "menu"
 
     def abrir(self) -> None:
         """Abre el menú de la tienda."""
