@@ -15,7 +15,7 @@ from src.entidades import Personaje, Enemigo, Proyectil
 from src.mundo import Escenario
 from src.ui import HUD, MenuTienda, MenuPausa
 from src.items import Tesoro, TrampaExplosiva, ItemDrop
-from src.sistemas import SistemaCombate, GestorProyectiles, GestorCombate, GestorItems
+from src.sistemas import SistemaCombate, GestorProyectiles, GestorCombate, GestorItems, GestorAudio
 from src.config.sprite_loader import (
     cargar_sprite_jugador,
     cargar_sprite_enemigo,
@@ -317,6 +317,7 @@ class Juego(arcade.Window):
         )
 
         if proyectil:
+            GestorAudio.reproducir_disparo()
             print(f"¡DISPARO! Daño: {proyectil.dano}")
 
     def _verificar_victoria(self):
@@ -412,8 +413,9 @@ class Juego(arcade.Window):
                     target_x=self.sprite_jugador.center_x,
                     target_y=self.sprite_jugador.center_y,
                 )
-                if proyectil:
-                    print(f"¡PROYECTIL ENEMIGO! Daño: {proyectil.dano}")
+            if proyectil:
+                GestorAudio.reproducir_disparo()
+                print(f"¡PROYECTIL ENEMIGO! Daño: {proyectil.dano}")
 
         # Actualizar cooldowns
         self.gestor_combate.actualizar_cooldown(delta_time)
@@ -450,6 +452,7 @@ class Juego(arcade.Window):
                 self._crear_drop_desde_enemigo(enemigo)
 
                 if enemigo.es_jefe:
+                    GestorAudio.reproducir_victoria()
                     self._juego_terminado = True
                     self._mensaje_victoria = "¡Has derrotado al JEFE! ¡VICTORIA!"
                     self.personaje.reiniciar_upgrades()
@@ -579,6 +582,9 @@ class Juego(arcade.Window):
 
             if arcade.check_for_collision(self.sprite_jugador, drop.sprite):
                 tipo, valor = drop.recoger(self.personaje)
+
+                if tipo in ("tesoro", "trampa"):
+                    GestorAudio.reproducir_recompensa()
 
                 if tipo == "tesoro":
                     print(f"¡Drop de enemigo! +{valor} oro")
