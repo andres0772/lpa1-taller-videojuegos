@@ -156,6 +156,11 @@ class Juego(arcade.Window):
         sprite.center_y = enemigo.center_y
         return sprite
 
+    def _on_tesoro_recogido(self, oro: int):
+        """Callback cuando el jugador recoge un tesoro del mapa."""
+        print(f"¡Tesoro encontrado! +{oro} oro")
+        GestorAudio.reproducir_recompensa()
+
     def _crear_sprite_item(self, color):
         """Crea el sprite de un item desde el spritesheet de Kenney."""
         sprite = cargar_sprite_item()
@@ -507,7 +512,7 @@ class Juego(arcade.Window):
             self.sprite_jugador,
             self.escenario.items,
             self.lista_sprites,
-            on_tesoro_recogido=lambda oro: print(f"¡Tesoro encontrado! +{oro} oro"),
+            on_tesoro_recogido=self._on_tesoro_recogido,
             on_trampa_activada=lambda dano: print(f"¡TRAMPA! Daño recibido: {dano}"),
         )
 
