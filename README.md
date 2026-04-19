@@ -6,7 +6,7 @@
 
 ## Autor
 
-- [Andres Esteban Vasquez Peña](https://github.com/andres0772)
+- [Andres Esteban Vasquez Peña]
 
 ## Descripción del Proyecto
 
@@ -179,8 +179,6 @@ El proyecto implementa los siguientes conceptos de Programación Orientada a Obj
 
 ## Diseño
 
-![Diagrama de Clases](./docs/diagramas.png)
-
 Para una descripción detallada del diagrama de clases, ver [docs/diagramas.md](./docs/diagramas.md).
 
 ## Instalación
@@ -191,30 +189,42 @@ Para una descripción detallada del diagrama de clases, ver [docs/diagramas.md](
     git clone https://github.com/andres0772/lpa1-taller-videojuegos.git
     cd lpa1-taller-videojuegos
     ```
+### Ejecución con Docker (Recomendado)
 
-2. Crear y activar entorno virtual
+#### Paso 1: Dar permisos X11 (solo Linux/WSL2)
 
-    ```bash
-    python3 -m venv venv
-    source venv/bin/activate
-    ```
+Docker necesita permiso para mostrar ventanas gráficas. Ejecutá este comando UNA vez por sesión de terminal:
 
-3. Instalar librerías y dependencias
-
-    ```bash
-    pip install -r requirements.txt
-    ```
-    
-## Ejecución
 ```bash
-
-cd lpa1-taller-videojuegos
-python3 main.py
+xhost +local:docker
 ```
-### Requisitos del sistema
 
+**¿Qué hace este comando?**
+Permite que contenedores Docker accedan a tu pantalla. Es seguro porque solo acepta conexiones locales (no de internet).
+
+#### Paso 2: Construir y ejecutar
+
+```bash
+# Construir la imagen (solo la primera vez)
+docker compose build
+
+# Ejecutar el juego
+docker compose up
+
+# Para detener: Ctrl+C
+```
+
+#### Estructura del proyecto
+- `main.py` — Punto de entrada del juego
+- `src/` — Código fuente (entidades, sistemas, mundos)
+- `assets/` — Sprites y recursos gráficos
+- `Dockerfile` — Configuración de Docker
+- `docker-compose.yml` — Orquestación del contenedor
+
+### Requisitos del sistema
+- Docker instalado
+- En Linux/WSL2: permisos X11 (ver instrucciones abajo)
 - Python 3
 - tener instalada las dependencias
 ---
 
-*Proyecto desarrollado para el Taller de Videojuegos - LPA1*

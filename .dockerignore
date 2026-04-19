@@ -1,0 +1,13 @@
+# No copiar al contenedor
+venv/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+*.md
+!README.md
+docs/
+tests/
+.dockerignore
+Dockerfile
+docker-compose.yml

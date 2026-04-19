@@ -1,0 +1,39 @@
+# =============================================================================
+# Docker Compose para LPA1 - Taller de Videojuegos
+# Configuración para ejecutar juego Python con soporte gráfico (X11)
+# =============================================================================
+
+services:
+  juego:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lpa1-juego
+    
+    # =============================================================================
+    # CONFIGURACIÓN DE ENTORNO GRÁFICO (X11 Forwarding)
+    # =============================================================================
+    # Estas variables permiten que la ventana del juego se muestre en el host
+    environment:
+      # DISPLAY del host (típicamente :0 o :1 en Fedora)
+      - DISPLAY=${DISPLAY}
+      # Usar renderizado por software si es necesario (más compatible)
+      - LIBGL_ALWAYS_SOFTWARE=1
+    
+    volumes:
+      # Montar socket de X11 para comunicación gráfica host <-> contenedor
+      # Necesario en Linux (Fedora/Ubuntu/etc) para mostrar ventanas GUI
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    
+    # =============================================================================
+    # CONFIGURACIÓN DEL CONTENEDOR
+    # =============================================================================
+    # Privilegios necesarios para acceso a GPU/dri devices (renderizado acelerado)
+    privileged: true
+    
+    # Comando que ejecuta el juego
+    command: python main.py
+    
+    # Mantener stdin abierto para interactividad
+    stdin_open: true
+    tty: true
