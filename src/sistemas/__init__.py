@@ -7,6 +7,7 @@ from .tienda import SistemaTienda, ItemTienda
 from .gestor_proyectiles import GestorProyectiles
 from .gestor_combate import GestorCombate
 from .gestor_items import GestorItems
+from .audio import GestorAudio
 
 __all__ = [
     "SistemaCombate",
@@ -18,4 +19,5 @@ __all__ = [
     "GestorProyectiles",
     "GestorCombate",
     "GestorItems",
+    "GestorAudio",
 ]
