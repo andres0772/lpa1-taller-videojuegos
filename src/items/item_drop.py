@@ -155,10 +155,10 @@ class ItemDrop(Item):
         """
         if self._tipo == "tesoro":
             personaje.agregar_oro(self._valor)
-            return ("oro", self._valor)
+            return ("tesoro", self._valor)
         elif self._tipo == "trampa":
             personaje.recibir_daño(self._valor)
-            return ("daño", self._valor)
+            return ("trampa", self._valor)
         else:
             return ("nada", 0)
 
