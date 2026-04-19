@@ -121,17 +121,17 @@ class MenuTienda:
                 arcade.key.KEY_8: 7,
             }
 
-        if key in mapeo:
-            indice = mapeo[key]
-            if indice < len(self._personaje.inventario):
-                exito, mensaje = SistemaTienda.vender_item(indice, self._personaje)
-                self._mensaje = mensaje
-                self._mostrar_mensaje_timer = 2.0
-                GestorAudio.reproducir_ui()
+            if key in mapeo:
+                indice = mapeo[key]
+                if indice < len(self._personaje.inventario):
+                    exito, mensaje = SistemaTienda.vender_item(indice, self._personaje)
+                    self._mensaje = mensaje
+                    self._mostrar_mensaje_timer = 2.0
+                    GestorAudio.reproducir_ui()
 
                     if not self._personaje.inventario:
                         self._mensaje = "Inventario vacío"
-                    return True
+                return True
 
         if key == arcade.key.ESCAPE:
             self._modo_actual = "menu"
