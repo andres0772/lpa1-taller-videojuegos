@@ -26,19 +26,22 @@ class MenuPausa:
     def __init__(self, personaje):
         self._personaje = personaje
         self._modo_actual = "menu"  # menu | stats
+        self._abierto = False
 
     @property
     def abierto(self) -> bool:
-        return self._modo_actual == "menu"
+        return self._abierto
 
     def abrir(self) -> None:
         """Abre el menú de pausa."""
         self._modo_actual = "menu"
+        self._abierto = True
         GestorAudio.reproducir_ui()
 
     def cerrar(self) -> None:
         """Cierra el menú de pausa."""
         self._modo_actual = "menu"
+        self._abierto = False
 
     def manejar_input(self, key) -> bool:
         """Maneja input del teclado. Retorna True si se procesó input."""
