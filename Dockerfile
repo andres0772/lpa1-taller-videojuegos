@@ -27,7 +27,22 @@ fontconfig \
 libjpeg62-turbo \
 libpng-dev \
 zlib1g-dev \
+pulseaudio \
+pulseaudio-utils \
+libpulse0 \
 && rm -rf /var/lib/apt/lists/*
+
+# =============================================================================
+# CREAR USUARIO CON UID/GID 1000 PARA AUDIO
+# =============================================================================
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g 1000 -m -s /bin/bash appuser && \
+    mkdir -p /home/appuser/.config/pulse && \
+    chown -R appuser:appuser /home/appuser
+
+# Crear directorio de caché para el usuario
+RUN mkdir -p /home/appuser/.cache && \
+    chown -R appuser:appuser /home/appuser/.cache
 
 # =============================================================================
 # INSTALAR DEPENDENCIAS PYTHON

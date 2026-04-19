@@ -1,6 +1,6 @@
 # =============================================================================
 # Docker Compose para LPA1 - Taller de Videojuegos
-# Configuración para ejecutar juego Python con soporte gráfico (X11)
+# Configuración para ejecutar juego Python con soporte gráfico (X11) y audio (PulseAudio)
 # =============================================================================
 
 services:
@@ -9,31 +9,43 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: lpa1-juego
-    
+
     # =============================================================================
-    # CONFIGURACIÓN DE ENTORNO GRÁFICO (X11 Forwarding)
+    # CONFIGURACIÓN DE ENTORNO GRÁFICO Y AUDIO (X11 + PulseAudio Forwarding)
     # =============================================================================
-    # Estas variables permiten que la ventana del juego se muestre en el host
     environment:
       # DISPLAY del host (típicamente :0 o :1 en Fedora)
       - DISPLAY=${DISPLAY}
       # Usar renderizado por software si es necesario (más compatible)
       - LIBGL_ALWAYS_SOFTWARE=1
-    
+      # PulseAudio - usar el socket del host
+      - PULSE_SERVER=unix:/run/user/1000/pulse/native
+      # Evitar problemas de permisos con PulseAudio
+      - PULSE_COOKIE=/run/user/1000/pulse/cookie
+
     volumes:
       # Montar socket de X11 para comunicación gráfica host <-> contenedor
       # Necesario en Linux (Fedora/Ubuntu/etc) para mostrar ventanas GUI
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-    
+      # PulseAudio socket para audio del host
+      - /run/user/1000/pulse:/run/user/1000/pulse:rw
+      # Cookie de PulseAudio del usuario
+      - /home/CROSS/.config/pulse/cookie:/run/user/1000/pulse/cookie:ro
+
     # =============================================================================
     # CONFIGURACIÓN DEL CONTENEDOR
     # =============================================================================
+    # Ejecutar con UID/GID del usuario host para acceder a PulseAudio
+    user: "1000:1000"
     # Privilegios necesarios para acceso a GPU/dri devices (renderizado acelerado)
     privileged: true
-    
+    # Grupos adicionales para audio
+    group_add:
+      - audio
+
     # Comando que ejecuta el juego
     command: python main.py
-    
+
     # Mantener stdin abierto para interactividad
     stdin_open: true
     tty: true
