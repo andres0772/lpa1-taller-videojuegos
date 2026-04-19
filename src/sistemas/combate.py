@@ -29,6 +29,7 @@ class SistemaCombate:
 
     @staticmethod
     def atacar(atacante: Entidad, defensor: Entidad) -> ResultadoCombate:
+        """Ejecuta un ataque y retorna el resultado."""
         # Verificar si pueden recibir daño antes de atacar
         if not atacante.puede_recibir_daño() or not defensor.puede_recibir_daño():
             return ResultadoCombate(
@@ -36,7 +37,6 @@ class SistemaCombate:
                 dano_recibido=0,
                 enemigo_derrotado=False,
             )
-        """Ejecuta un ataque y retorna el resultado."""
         # Usar stats totales si están disponibles (para Personaje con equipamiento)
         ataque_atacante = atacante.ataque_total
         defensa_defensor = defensor.defensa_total
