@@ -80,7 +80,10 @@ class GestorAudio:
         """
         sonido = getattr(self, nombre_sonido, None)
         if sonido is not None:
-            arcade.play_sound(sonido)
+            try:
+                arcade.play_sound(sonido)
+            except Exception:
+                pass
 
     @staticmethod
     def reproducir_disparo() -> None:
