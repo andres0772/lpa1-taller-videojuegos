@@ -2,6 +2,7 @@
 
 import arcade
 
+from ..sistemas.audio import GestorAudio
 from ..sistemas.tienda import SistemaTienda
 from .overlay_comun import (
     COLOR_ACENTO_INFO,
@@ -37,6 +38,7 @@ class MenuTienda:
         """Abre el menú de la tienda."""
         self._modo_actual = "menu"
         self._mensaje = ""
+        GestorAudio.reproducir_ui()
 
     def cerrar(self) -> None:
         """Cierra el menú de la tienda."""
@@ -88,6 +90,7 @@ class MenuTienda:
             exito, mensaje = SistemaTienda.comprar_item(indice, self._personaje)
             self._mensaje = mensaje
             self._mostrar_mensaje_timer = 2.0
+            GestorAudio.reproducir_ui()
             return True
         elif key == arcade.key.ESCAPE:
             self._modo_actual = "menu"
@@ -118,12 +121,13 @@ class MenuTienda:
                 arcade.key.KEY_8: 7,
             }
 
-            if key in mapeo:
-                indice = mapeo[key]
-                if indice < len(self._personaje.inventario):
-                    exito, mensaje = SistemaTienda.vender_item(indice, self._personaje)
-                    self._mensaje = mensaje
-                    self._mostrar_mensaje_timer = 2.0
+        if key in mapeo:
+            indice = mapeo[key]
+            if indice < len(self._personaje.inventario):
+                exito, mensaje = SistemaTienda.vender_item(indice, self._personaje)
+                self._mensaje = mensaje
+                self._mostrar_mensaje_timer = 2.0
+                GestorAudio.reproducir_ui()
 
                     if not self._personaje.inventario:
                         self._mensaje = "Inventario vacío"
